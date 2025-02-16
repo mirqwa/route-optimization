@@ -1,5 +1,4 @@
 import argparse
-import random
 from pathlib import Path
 
 import contextily as cx
@@ -12,6 +11,18 @@ import pandas as pd
 from googlemaps import Client
 
 import constants
+
+
+def annotate_route(
+    ax: plt.Axes, data_gdf: gpd.GeoDataFrame, i: int, j: int, color: str
+) -> None:
+    arrowprops = dict(arrowstyle="->", connectionstyle="arc3", edgecolor=color)
+    ax.annotate(
+        "",
+        xy=[data_gdf.iloc[j].geometry.x, data_gdf.iloc[j].geometry.y],
+        xytext=[data_gdf.iloc[i].geometry.x, data_gdf.iloc[i].geometry.y],
+        arrowprops=arrowprops,
+    )
 
 
 def plot_cities(cities_gdf: gpd.GeoDataFrame, path: list = []) -> None:
@@ -45,6 +56,8 @@ def plot_cities(cities_gdf: gpd.GeoDataFrame, path: list = []) -> None:
                 size=15,
                 color="blue",
             )
+    for i, j in path:
+        annotate_route(ax, cities_gdf, i, j, "darkblue")
     ax.set_axis_off()
     plt.show()
 
