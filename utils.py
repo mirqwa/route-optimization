@@ -17,7 +17,9 @@ def get_gmaps_client(api_key: str) -> Client:
     return g_maps_client
 
 
-def prepare_cities_data(g_maps_client, use_saved_coordinates=False) -> gpd.GeoDataFrame:
+def get_cities_coordinates(
+    g_maps_client, use_saved_coordinates=False
+) -> gpd.GeoDataFrame:
     file_name = "data/east_africa/cities.geojson"
     if Path(file_name).is_file() and use_saved_coordinates:
         return gpd.read_file(file_name)
@@ -44,7 +46,7 @@ def prepare_cities_data(g_maps_client, use_saved_coordinates=False) -> gpd.GeoDa
 
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
-    cities_locations_gdf = prepare_cities_data(
+    cities_locations_gdf = get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
 
