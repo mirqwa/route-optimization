@@ -2,13 +2,51 @@ import argparse
 import random
 from pathlib import Path
 
+import contextily as cx
 import geopandas as gpd
 import gmaps
+import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 
 from googlemaps import Client
 
 import constants
+
+
+def plot_cities(cities_gdf: gpd.GeoDataFrame, path: list = []) -> None:
+    _, ax = plt.subplots(1, figsize=(15, 15))
+    cities_gdf["markersize"] = np.where(
+        cities_gdf["Label"].isin(["Nairobi", "Kampala"]), 150, 50
+    )
+    cities_gdf["color"] = np.where(
+        cities_gdf["Label"].isin(["Nairobi", "Kampala"]), "red", "purple"
+    )
+
+    cities_gdf.plot(
+        ax=ax, color=cities_gdf["color"], markersize=cities_gdf["markersize"], alpha=0.5
+    )
+
+    # Add basemap
+    cx.add_basemap(
+        ax, crs=cities_gdf.crs, zoom=8, source=cx.providers.OpenStreetMap.Mapnik
+    )
+
+    for lon, lat, label in zip(
+        cities_gdf.geometry.x, cities_gdf.geometry.y, cities_gdf.Label
+    ):
+        city_label = constants.CITIES_TO_LABEL.get(label)
+        if city_label:
+            ax.annotate(
+                city_label,
+                xy=(lon, lat),
+                xytext=(-20, -20),
+                textcoords="offset points",
+                size=15,
+                color="blue",
+            )
+    ax.set_axis_off()
+    plt.show()
 
 
 def get_gmaps_client(api_key: str) -> Client:
@@ -67,6 +105,7 @@ def main(api_key: str) -> None:
     cities_locations_gdf = get_cities_coordinates(
         g_maps_client, use_saved_coordinates=False
     )
+    plot_cities(cities_locations_gdf)
 
 
 if __name__ == "__main__":
