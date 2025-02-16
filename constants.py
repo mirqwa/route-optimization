@@ -25,7 +25,6 @@ CITIES = [
     "Siaya",
     "Eldama Ravine",
     "Bomet",
-    "Bondo",
     "Ahero",
     "Muhoroni",
     "Butere",
