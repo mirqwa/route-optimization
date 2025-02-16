@@ -106,7 +106,7 @@ def get_intercity_distances(
     file_name = f"data/east_africa/distances.csv"
     cities_distances = pd.read_csv(file_name) if Path(file_name).is_file() else None
     if use_saved_distances and cities_distances is not None:
-        return cities_distances.values
+        return cities_distances.values[:, 1:]
     distances = np.zeros((len(cities_locations_gdf), len(cities_locations_gdf)))
     cities_locations_gdf["coord"] = (
         cities_locations_gdf.lat.astype(str)
