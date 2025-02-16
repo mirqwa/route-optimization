@@ -17,16 +17,34 @@ def get_gmaps_client(api_key: str) -> Client:
     return g_maps_client
 
 
+def get_coordinates_for_available_city(
+    cities_coordinates: gpd.GeoDataFrame, city: str
+) -> dict:
+    city_gdf = cities_coordinates[cities_coordinates["Label"] == city].reset_index()
+    location = city_gdf.iloc[0].to_dict()
+    del location["index"]
+    del location["geometry"]
+    return location
+
+
 def get_cities_coordinates(
     g_maps_client, use_saved_coordinates=False
 ) -> gpd.GeoDataFrame:
     file_name = "data/east_africa/cities.geojson"
-    if Path(file_name).is_file() and use_saved_coordinates:
-        return gpd.read_file(file_name)
+    cities_coordinates = gpd.read_file(file_name) if Path(file_name).is_file() else None
+    if use_saved_coordinates and cities_coordinates is not None:
+        return cities_coordinates
+    available_cities = (
+        cities_coordinates["Label"].tolist() if cities_coordinates is not None else []
+    )
     cities_locations = []
     for city in constants.CITIES:
-        geocode_result = g_maps_client.geocode(city)
         location = {"Label": city}
+        if city in available_cities:
+            location = get_coordinates_for_available_city(cities_coordinates, city)
+            cities_locations.append(location)
+            continue
+        geocode_result = g_maps_client.geocode(city)
         try:
             location.update(geocode_result[0]["geometry"]["location"])
             cities_locations.append(location)
@@ -47,7 +65,7 @@ def get_cities_coordinates(
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
     cities_locations_gdf = get_cities_coordinates(
-        g_maps_client, use_saved_coordinates=True
+        g_maps_client, use_saved_coordinates=False
     )
 
 
