@@ -100,12 +100,63 @@ def get_cities_coordinates(
     return cities_locations_gdf
 
 
+def get_intercity_distances(
+    cities_locations_gdf: gpd.GeoDataFrame, g_maps_client, use_saved_distances=False
+) -> np.ndarray:
+    file_name = f"data/east_africa/distances.csv"
+    cities_distances = pd.read_csv(file_name) if Path(file_name).is_file() else None
+    if use_saved_distances and cities_distances is not None:
+        return cities_distances.values
+    distances = np.zeros((len(cities_locations_gdf), len(cities_locations_gdf)))
+    cities_locations_gdf["coord"] = (
+        cities_locations_gdf.lat.astype(str)
+        + ","
+        + cities_locations_gdf.lng.astype(str)
+    )
+    available_cities = (
+        cities_distances["Label"].tolist() if cities_distances is not None else []
+    )
+    for lat in range(len(cities_locations_gdf)):
+        for lon in range(len(cities_locations_gdf)):
+            origin = cities_locations_gdf["Label"][lat]
+            destination = cities_locations_gdf["Label"][lon]
+            if origin in available_cities:
+                city_distances = cities_distances[
+                    cities_distances["Label"] == origin
+                ].reset_index()
+                city_distances = city_distances.iloc[0].to_dict()
+                distance = city_distances.get(destination)
+                if distance is not None:
+                    distances[lat][lon] = distance
+                    print(
+                        f"Distance for {origin} -> {destination} already fetched, skipping"
+                    )
+                    continue
+            print(f"Getting distance for {origin} -> {destination}")
+            maps_api_result = g_maps_client.directions(
+                cities_locations_gdf["coord"].iloc[lat],
+                cities_locations_gdf["coord"].iloc[lon],
+                mode="driving",
+            )
+            distances[lat][lon] = maps_api_result[0]["legs"][0]["distance"]["value"]
+    distances_df = pd.DataFrame(
+        data=distances,
+        columns=cities_locations_gdf["Label"],
+        index=cities_locations_gdf["Label"],
+    )
+    distances_df.to_csv(file_name)
+    return distances
+
+
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
     cities_locations_gdf = get_cities_coordinates(
         g_maps_client, use_saved_coordinates=False
     )
     plot_cities(cities_locations_gdf)
+    distances = get_intercity_distances(
+        cities_locations_gdf, g_maps_client, use_saved_distances=True
+    )
 
 
 if __name__ == "__main__":
