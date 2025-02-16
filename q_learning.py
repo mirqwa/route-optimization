@@ -131,6 +131,7 @@ def main(api_key: str) -> None:
     )
     print(shortest_path)
     print(route)
+    utils.plot_cities(cities_locations_gdf, route)
 
 
 if __name__ == "__main__":
