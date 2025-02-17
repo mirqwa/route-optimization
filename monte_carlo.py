@@ -90,6 +90,9 @@ def get_optimal_path(
                 current_time_step -= 1
                 continue
             returns[(state, action)].append(G)
+            state_action_values[state][action] = sum(returns[(state, action)]) / len(
+                returns[(state, action)]
+            )
 
     return shortest_path, route
 
