@@ -26,6 +26,13 @@ def initialize_state_action_values(
     return state_action_values
 
 
+def initialize_returns(distances: np.ndarray) -> dict:
+    returns = {}
+    for state in range(distances.shape[0]):
+        returns[state] = []
+    return returns
+
+
 def main(api_key: str) -> None:
     g_maps_client = utils.get_gmaps_client(api_key)
     cities_locations_gdf = utils.get_cities_coordinates(
@@ -39,6 +46,7 @@ def main(api_key: str) -> None:
     distances = np.where(distances == 0, float("inf"), distances)
     policy = initialize_policy(distances)
     state_action_values = initialize_state_action_values(cities_locations_gdf)
+    returns = initialize_returns(distances)
 
 
 if __name__ == "__main__":
