@@ -161,6 +161,19 @@ def get_intercity_distances(
     return distances
 
 
+def get_shortest_path(
+    state_action_values: np.ndarray, start_state: int, end_state: int
+) -> list:
+    shortest_path = [start_state]
+    current_state = start_state
+    while current_state != end_state:
+        next_state = np.argmax(state_action_values[current_state, :])
+        shortest_path.append(next_state)
+        current_state = next_state
+    route = [(start, dest) for start, dest in zip(shortest_path, shortest_path[1:])]
+    return shortest_path, route
+
+
 def get_distance(distances: np.array, route: list) -> int:
     route_distance = 0
     for origin, destination in route:
