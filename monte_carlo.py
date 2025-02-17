@@ -27,8 +27,8 @@ def initialize_policy(distances: np.ndarray) -> dict:
 def initialize_state_action_values(
     cities_locations_gdf: gpd.GeoDataFrame,
 ) -> np.ndarray:
-    state_action_values = np.zeros(
-        (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0])
+    state_action_values = np.full(
+        (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]), -float("inf")
     )
     return state_action_values
 
@@ -93,6 +93,7 @@ def get_optimal_path(
             state_action_values[state][action] = sum(returns[(state, action)]) / len(
                 returns[(state, action)]
             )
+            max_action = np.argmax(state_action_values[state])
 
     return shortest_path, route
 
