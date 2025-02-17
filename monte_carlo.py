@@ -1,8 +1,19 @@
 import argparse
+from collections import defaultdict
 
 import numpy as np
 
 import utils
+
+
+def initialize_policy(distances: np.ndarray) -> dict:
+    policy = defaultdict(list)
+    for state in range(distances.shape[0]):
+        for action in range(distances.shape[1]):
+            if state == action:
+                continue
+            policy[state].append({action: 1 / (distances.shape[1] - 1)})
+    return dict(policy)
 
 
 def main(api_key: str) -> None:
@@ -16,6 +27,7 @@ def main(api_key: str) -> None:
     )
     distances = distances / 1000
     distances = np.where(distances == 0, float("inf"), distances)
+    policy = initialize_policy(distances)
 
 
 if __name__ == "__main__":
