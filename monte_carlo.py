@@ -36,7 +36,8 @@ def initialize_state_action_values(
 def initialize_returns(distances: np.ndarray) -> dict:
     returns = {}
     for state in range(distances.shape[0]):
-        returns[state] = []
+        for action in range(distances.shape[1]):
+            returns[(state, action)] = []
     return returns
 
 
@@ -88,6 +89,7 @@ def get_optimal_path(
             ):
                 current_time_step -= 1
                 continue
+            returns[(state, action)].append(G)
 
     return shortest_path, route
 
