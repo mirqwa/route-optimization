@@ -7,6 +7,9 @@ import numpy as np
 import utils
 
 
+np.random.seed(32)
+
+
 EPISODES = 100
 
 
@@ -36,6 +39,19 @@ def initialize_returns(distances: np.ndarray) -> dict:
     return returns
 
 
+def select_action(policy: dict, current_state: int) -> int:
+    actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
+    probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
+    action = np.random.choice(actions, 1, replace=False, p=probs)
+    return action[0]
+
+
+def generate_episode(policy: dict, returns: dict, origin: int, destination: int):
+    current_state = origin
+    while current_state != destination:
+        action = select_action(policy, current_state)
+
+
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
@@ -48,7 +64,8 @@ def get_optimal_path(
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
-    
+        generate_episode(policy, returns, 0, 15)
+
     return shortest_path, route
 
 
