@@ -42,14 +42,19 @@ def initialize_returns(distances: np.ndarray) -> dict:
 def select_action(policy: dict, current_state: int) -> int:
     actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
     probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
-    action = np.random.choice(actions, 1, replace=False, p=probs)
-    return action[0]
+    action = np.random.choice(actions, 1, replace=False, p=probs)[0]
+    next_state = action
+    return action, next_state
 
 
-def generate_episode(policy: dict, returns: dict, origin: int, destination: int):
+def generate_episode(policy: dict, origin: int, destination: int) -> list:
+    episode_results = []
     current_state = origin
     while current_state != destination:
-        action = select_action(policy, current_state)
+        action, next_state = select_action(policy, current_state)
+        episode_results.append({current_state: action})
+        current_state = next_state
+    return episode_results
 
 
 def get_optimal_path(
@@ -64,7 +69,7 @@ def get_optimal_path(
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
-        generate_episode(policy, returns, 0, 15)
+        episode_results = generate_episode(policy, 0, 15)
 
     return shortest_path, route
 
