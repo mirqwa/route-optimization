@@ -58,6 +58,14 @@ def generate_episode(policy: dict, origin: int, destination: int) -> list:
     return episode_results
 
 
+def state_action_pair_exists_earlier(
+    state_action: tuple, episode_results: list, current_time_step: int
+) -> bool:
+    if state_action in episode_results[:current_time_step]:
+        return True
+    return False
+
+
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
@@ -72,8 +80,14 @@ def get_optimal_path(
         print(f"Episode {episode + 1}")
         episode_results = generate_episode(policy, 0, 15)
         G = 0
+        current_time_step = len(episode_results) - 1
         for state, action in reversed(episode_results):
             G = constants.DISCOUNT_FACTOR * G - distances[state][action]
+            if state_action_pair_exists_earlier(
+                (state, action), episode_results, current_time_step
+            ):
+                current_time_step -= 1
+                continue
 
     return shortest_path, route
 
