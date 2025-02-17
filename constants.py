@@ -30,6 +30,11 @@ CITIES = [
     "Butere",
     "Ugunja",
     "Chwele",
+    "Iganga",
+    "Bugiri",
+    "Buwuni",
+    "Nankoma",
+    "Maguye"
 ]
 
 CITIES_TO_LABEL = {"Nairobi": "ORIGIN", "Kampala": "DESTINATION"}
