@@ -7,6 +7,9 @@ import numpy as np
 import utils
 
 
+EPISODES = 100
+
+
 def initialize_policy(distances: np.ndarray) -> dict:
     policy = defaultdict(list)
     for state in range(distances.shape[0]):
@@ -33,6 +36,22 @@ def initialize_returns(distances: np.ndarray) -> dict:
     return returns
 
 
+def get_optimal_path(
+    cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
+) -> tuple:
+    policy = initialize_policy(distances)
+    state_action_values = initialize_state_action_values(cities_locations_gdf)
+    returns = initialize_returns(distances)
+
+    shortest_path = None
+    route = None
+
+    for episode in range(EPISODES):
+        print(f"Episode {episode + 1}")
+    
+    return shortest_path, route
+
+
 def main(api_key: str) -> None:
     g_maps_client = utils.get_gmaps_client(api_key)
     cities_locations_gdf = utils.get_cities_coordinates(
@@ -44,9 +63,7 @@ def main(api_key: str) -> None:
     )
     distances = distances / 1000
     distances = np.where(distances == 0, float("inf"), distances)
-    policy = initialize_policy(distances)
-    state_action_values = initialize_state_action_values(cities_locations_gdf)
-    returns = initialize_returns(distances)
+    shortest_path, route = get_optimal_path(cities_locations_gdf, distances)
 
 
 if __name__ == "__main__":
