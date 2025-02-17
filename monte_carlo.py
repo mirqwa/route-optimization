@@ -16,32 +16,18 @@ EPISODES = 10000
 EPSILON = 0.2
 
 
-def get_possible_state_actions(cities_locations_gdf: gpd.GeoDataFrame) -> dict:
-    cities_locations_gdf_epsg_5234 = cities_locations_gdf.to_crs("EPSG:5234")
+def get_possible_state_actions(distances: np.ndarray) -> dict:
     states_actions = {}
-    for i in range(len(cities_locations_gdf)):
-        city_df = pd.DataFrame(
-            [
-                cities_locations_gdf_epsg_5234.iloc[i].to_dict()
-                for _ in range(len(cities_locations_gdf_epsg_5234))
-            ],
-        )
-        city_df = city_df.drop(columns=["geometry"])
-        city_gdf = gpd.GeoDataFrame(
-            city_df,
-            geometry=gpd.points_from_xy(city_df["lng"], city_df["lat"]),
-            crs="EPSG:4326",
-        )
-        city_gdf = city_gdf.to_crs("EPSG:5234")
-        distances = cities_locations_gdf_epsg_5234.distance(city_gdf, align=True)
-        distances = distances.sort_values()
-        actions = [action for action in distances[:12].index if action != i]
+    for i in range(distances.shape[0]):
+        city_distances = pd.Series(distances[i, :])
+        city_distances = city_distances.sort_values()
+        actions = [action for action in city_distances[:10].index if action != i]
         states_actions[i] = actions
     return states_actions
 
 
-def initialize_policy(cities_locations_gdf: gpd.GeoDataFrame) -> dict:
-    possible_state_actions = get_possible_state_actions(cities_locations_gdf)
+def initialize_policy(distances: np.ndarray) -> dict:
+    possible_state_actions = get_possible_state_actions(distances)
     policy = defaultdict(list)
     for state, actions in possible_state_actions.items():
         for action in actions:
@@ -109,7 +95,7 @@ def update_policy(policy: dict, state: int, action_with_max_value: int) -> dict:
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
-    policy = initialize_policy(cities_locations_gdf)
+    policy = initialize_policy(distances)
     state_action_values = initialize_state_action_values(cities_locations_gdf)
     returns = initialize_returns(distances)
 
@@ -135,7 +121,7 @@ def get_optimal_path(
             action_with_max_value = np.argmax(state_action_values[state])
             policy = update_policy(policy, state, action_with_max_value)
             current_time_step -= 1
-
+    
     shortest_path, route = utils.get_shortest_path(state_action_values, 0, 15)
 
     route_distance = utils.get_distance(distances, route)
@@ -152,7 +138,7 @@ def main(api_key: str) -> None:
     cities_locations_gdf = utils.get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
     distances = utils.get_intercity_distances(
         cities_locations_gdf, g_maps_client, use_saved_distances=True
     )
