@@ -35,7 +35,7 @@ def get_possible_state_actions(cities_locations_gdf: gpd.GeoDataFrame) -> dict:
         city_gdf = city_gdf.to_crs("EPSG:5234")
         distances = cities_locations_gdf_epsg_5234.distance(city_gdf, align=True)
         distances = distances.sort_values()
-        actions = [action for action in distances[:15].index if action != i]
+        actions = [action for action in distances[:12].index if action != i]
         states_actions[i] = actions
     return states_actions
 

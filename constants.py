@@ -57,7 +57,15 @@ CITIES = [
     "Kimilili",
     "Cheptais",
     "Endebess",
-    "Kiminini"
+    "Kiminini",
+    "Mau Summit",
+    "Londiani Junction",
+    "Timboroa",
+    "GilGil",
+    "Burnt Forest",
+    "Cheptiret",
+    "Chavakali",
+    "Malava",
 ]
 
 CITIES_TO_LABEL = {"Nairobi": "ORIGIN", "Kampala": "DESTINATION"}
