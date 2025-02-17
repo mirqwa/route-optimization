@@ -4,6 +4,7 @@ from collections import defaultdict
 import geopandas as gpd
 import numpy as np
 
+import constants
 import utils
 
 
@@ -52,7 +53,7 @@ def generate_episode(policy: dict, origin: int, destination: int) -> list:
     current_state = origin
     while current_state != destination:
         action, next_state = select_action(policy, current_state)
-        episode_results.append({current_state: action})
+        episode_results.append((current_state, action))
         current_state = next_state
     return episode_results
 
@@ -70,6 +71,9 @@ def get_optimal_path(
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
         episode_results = generate_episode(policy, 0, 15)
+        G = 0
+        for state, action in reversed(episode_results):
+            G = constants.DISCOUNT_FACTOR * G - distances[state][action]
 
     return shortest_path, route
 
@@ -79,7 +83,7 @@ def main(api_key: str) -> None:
     cities_locations_gdf = utils.get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
     distances = utils.get_intercity_distances(
         cities_locations_gdf, g_maps_client, use_saved_distances=True
     )
