@@ -5,15 +5,15 @@ import geopandas as gpd
 import numpy as np
 import pandas as pd
 
-import constants
 import utils
 
 
 np.random.seed(32)
 
 
-EPISODES = 10000
+EPISODES = 1000
 EPSILON = 0.2
+DISCOUNT_FACTOR = 0.8
 
 
 def get_possible_state_actions(distances: np.ndarray) -> dict:
@@ -108,7 +108,7 @@ def get_optimal_path(
         G = 0
         current_time_step = len(episode_results) - 1
         for state, action in reversed(episode_results):
-            G = constants.DISCOUNT_FACTOR * G - distances[state][action]
+            G = DISCOUNT_FACTOR * G - distances[state][action]
             if state_action_pair_exists_earlier(
                 (state, action), episode_results, current_time_step
             ):

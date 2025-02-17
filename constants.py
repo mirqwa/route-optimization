@@ -66,6 +66,9 @@ CITIES = [
     "Cheptiret",
     "Chavakali",
     "Malava",
+    "Uthiru",
+    "Kimende",
+    "Kinungi"
 ]
 
 CITIES_TO_LABEL = {"Nairobi": "ORIGIN", "Kampala": "DESTINATION"}
