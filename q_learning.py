@@ -86,7 +86,9 @@ def get_optimal_path(
         columns=cities_locations_gdf["Label"],
     )
     q_table_df.to_csv(f"data/east_africa/{start_city}_{end_city}_q_table.csv")
-    shortest_path, route = utils.get_shortest_path(q_table, start_city_index, end_city_index)
+    shortest_path, route = utils.get_shortest_path(
+        q_table, start_city_index, end_city_index
+    )
     route_distance = utils.get_distance(distances, route)
     shortest_path = [
         cities_locations_gdf["Label"][city_index] for city_index in shortest_path

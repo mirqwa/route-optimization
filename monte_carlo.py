@@ -12,7 +12,7 @@ import utils
 np.random.seed(32)
 
 
-EPISODES = 1000
+EPISODES = 10000
 EPSILON = 0.2
 
 
