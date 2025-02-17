@@ -1,6 +1,7 @@
 import argparse
 from collections import defaultdict
 
+import geopandas as gpd
 import numpy as np
 
 import utils
@@ -16,6 +17,15 @@ def initialize_policy(distances: np.ndarray) -> dict:
     return dict(policy)
 
 
+def initialize_state_action_values(
+    cities_locations_gdf: gpd.GeoDataFrame,
+) -> np.ndarray:
+    state_action_values = np.zeros(
+        (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0])
+    )
+    return state_action_values
+
+
 def main(api_key: str) -> None:
     g_maps_client = utils.get_gmaps_client(api_key)
     cities_locations_gdf = utils.get_cities_coordinates(
@@ -28,6 +38,7 @@ def main(api_key: str) -> None:
     distances = distances / 1000
     distances = np.where(distances == 0, float("inf"), distances)
     policy = initialize_policy(distances)
+    state_action_values = initialize_state_action_values(cities_locations_gdf)
 
 
 if __name__ == "__main__":
