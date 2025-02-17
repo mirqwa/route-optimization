@@ -151,6 +151,12 @@ def get_optimal_path(
 
     shortest_path, route = get_shortest_path(state_action_values, 0, 15)
 
+    route_distance = utils.get_distance(distances, route)
+    shortest_path = [
+        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
+    ]
+    shortest_path = " -> ".join(shortest_path)
+
     return shortest_path, route
 
 
@@ -166,6 +172,9 @@ def main(api_key: str) -> None:
     distances = distances / 1000
     distances = np.where(distances == 0, float("inf"), distances)
     shortest_path, route = get_optimal_path(cities_locations_gdf, distances)
+    print(shortest_path)
+    print(route)
+    utils.plot_cities(cities_locations_gdf, route)
 
 
 if __name__ == "__main__":

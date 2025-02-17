@@ -161,6 +161,13 @@ def get_intercity_distances(
     return distances
 
 
+def get_distance(distances: np.array, route: list) -> int:
+    route_distance = 0
+    for origin, destination in route:
+        route_distance += distances[origin][destination]
+    return int(route_distance)
+
+
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
     cities_locations_gdf = get_cities_coordinates(
