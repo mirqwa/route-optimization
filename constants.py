@@ -39,6 +39,13 @@ CITIES = [
     "Pallisa",
     "Bumala",
     "Sironko",
+    "Maai Mahiu",
+    "Ntulele",
+    "Kisii",
+    "Athi River",
+    "Kapsabet",
+    "Mogotio",
+    "Marigat",
 ]
 
 CITIES_TO_LABEL = {"Nairobi": "ORIGIN", "Kampala": "DESTINATION"}
