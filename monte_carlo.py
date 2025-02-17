@@ -11,7 +11,8 @@ import utils
 np.random.seed(32)
 
 
-EPISODES = 100
+EPISODES = 1000
+EPSILON = 0.5
 
 
 def initialize_policy(distances: np.ndarray) -> dict:
@@ -72,13 +73,26 @@ def update_policy(policy: dict, state: int, action_with_max_value: int) -> dict:
     for state_policy in policy[state]:
         action = list(state_policy.keys())[0]
         prob = (
-            1 - constants.EPSILON + constants.EPSILON / len(policy[state])
+            1 - EPSILON + EPSILON / len(policy[state])
             if action == action_with_max_value
-            else constants.EPSILON / len(policy[state])
+            else EPSILON / len(policy[state])
         )
         new_state_policy.append({action: prob})
     policy[state] = new_state_policy
     return policy
+
+
+def get_shortest_path(
+    state_action_values: np.ndarray, start_state: int, end_state: int
+) -> list:
+    shortest_path = [start_state]
+    current_state = start_state
+    while current_state != end_state:
+        next_state = np.argmax(state_action_values[current_state, :])
+        shortest_path.append(next_state)
+        current_state = next_state
+    route = [(start, dest) for start, dest in zip(shortest_path, shortest_path[1:])]
+    return shortest_path, route
 
 
 def get_optimal_path(
@@ -110,6 +124,8 @@ def get_optimal_path(
             action_with_max_value = np.argmax(state_action_values[state])
             policy = update_policy(policy, state, action_with_max_value)
             current_time_step -= 1
+    
+    shortest_path, route = get_shortest_path(state_action_values, 0, 15)
 
     return shortest_path, route
 
