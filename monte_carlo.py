@@ -21,7 +21,7 @@ def get_possible_state_actions(distances: np.ndarray) -> dict:
     for i in range(distances.shape[0]):
         city_distances = pd.Series(distances[i, :])
         city_distances = city_distances.sort_values()
-        actions = [action for action in city_distances[:20].index if action != i]
+        actions = [action for action in city_distances[:10].index if action != i]
         states_actions[i] = actions
     return states_actions
 
@@ -70,7 +70,7 @@ def generate_episode(policy: dict, origin: int, destination: int) -> list:
     episode_results = []
     current_state = origin
     no_steps = 0
-    while current_state != destination and no_steps < 1000:
+    while current_state != destination and no_steps < 2000:
         action, next_state = select_action(policy, current_state)
         episode_results.append((current_state, action))
         current_state = next_state
