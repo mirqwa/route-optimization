@@ -11,9 +11,9 @@ import utils
 np.random.seed(32)
 
 
-EPISODES = 1000
+EPISODES = 10000
 EPSILON = 0.2
-DISCOUNT_FACTOR = 0.8
+DISCOUNT_FACTOR = 0.9
 
 
 def get_possible_state_actions(distances: np.ndarray) -> dict:
@@ -21,7 +21,7 @@ def get_possible_state_actions(distances: np.ndarray) -> dict:
     for i in range(distances.shape[0]):
         city_distances = pd.Series(distances[i, :])
         city_distances = city_distances.sort_values()
-        actions = [action for action in city_distances[:10].index if action != i]
+        actions = [action for action in city_distances[:20].index if action != i]
         states_actions[i] = actions
     return states_actions
 
@@ -36,11 +36,17 @@ def initialize_policy(distances: np.ndarray) -> dict:
 
 
 def initialize_state_action_values(
-    cities_locations_gdf: gpd.GeoDataFrame,
+    cities_locations_gdf: gpd.GeoDataFrame, policy: dict
 ) -> np.ndarray:
     state_action_values = np.full(
         (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]), -float("inf")
     )
+    for state in range(cities_locations_gdf.shape[0]):
+        state_actions = [list(action_prob.keys())[0] for action_prob in policy[state]]
+        for action in range(cities_locations_gdf.shape[0]):
+            state_action_values[state][action] = (
+                0 if action in state_actions else -float("inf")
+            )
     return state_action_values
 
 
@@ -63,10 +69,12 @@ def select_action(policy: dict, current_state: int) -> int:
 def generate_episode(policy: dict, origin: int, destination: int) -> list:
     episode_results = []
     current_state = origin
-    while current_state != destination:
+    no_steps = 0
+    while current_state != destination and no_steps < 1000:
         action, next_state = select_action(policy, current_state)
         episode_results.append((current_state, action))
         current_state = next_state
+        no_steps += 1
     return episode_results
 
 
@@ -96,7 +104,7 @@ def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
     policy = initialize_policy(distances)
-    state_action_values = initialize_state_action_values(cities_locations_gdf)
+    state_action_values = initialize_state_action_values(cities_locations_gdf, policy)
     returns = initialize_returns(distances)
 
     shortest_path = None
@@ -114,14 +122,15 @@ def get_optimal_path(
             ):
                 current_time_step -= 1
                 continue
-            returns[(state, action)].append(G)
+            multiple = episode_results[current_time_step:].count((state, action))
+            returns[(state, action)].append(G * multiple)
             state_action_values[state][action] = sum(returns[(state, action)]) / len(
                 returns[(state, action)]
             )
             action_with_max_value = np.argmax(state_action_values[state])
             policy = update_policy(policy, state, action_with_max_value)
             current_time_step -= 1
-    
+
     shortest_path, route = utils.get_shortest_path(state_action_values, 0, 15)
 
     route_distance = utils.get_distance(distances, route)

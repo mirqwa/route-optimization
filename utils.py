@@ -166,10 +166,14 @@ def get_shortest_path(
 ) -> list:
     shortest_path = [start_state]
     current_state = start_state
+    count = 0
     while current_state != end_state:
+        count += 1
         next_state = np.argmax(state_action_values[current_state, :])
         shortest_path.append(next_state)
         current_state = next_state
+        if count == 10:
+            break
     route = [(start, dest) for start, dest in zip(shortest_path, shortest_path[1:])]
     return shortest_path, route
 
