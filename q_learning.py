@@ -50,7 +50,8 @@ def get_q_learning_cost_table(
     distances: np.ndarray,
 ) -> np.ndarray:
     q_table = np.zeros((cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]))
-    for _ in range(num_episodes):
+    for epidode in range(num_episodes):
+        print(f"Episode {epidode + 1}")
         current_city = start_city_index
         while current_city != end_city_index:
             action = select_next_action(distances, current_city, q_table)
@@ -102,7 +103,7 @@ def main(api_key: str) -> None:
     cities_locations_gdf = utils.get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
     distances = utils.get_intercity_distances(
         cities_locations_gdf, g_maps_client, use_saved_distances=True
     )
