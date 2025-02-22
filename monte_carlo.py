@@ -13,7 +13,7 @@ np.random.seed(32)
 
 EPISODES = 10000
 EPSILON = 0.2
-DISCOUNT_FACTOR = 0.9
+DISCOUNT_FACTOR = 0.95
 
 
 def get_possible_state_actions(distances: np.ndarray) -> dict:
