@@ -65,26 +65,6 @@ def get_q_learning_cost_table(
     return q_table
 
 
-def get_shortest_path(
-    q_table: np.ndarray, start_city_index: int, end_city_index: int
-) -> list:
-    shortest_path = [start_city_index]
-    current_city = start_city_index
-    while current_city != end_city_index:
-        next_city = np.argmax(q_table[current_city, :])
-        shortest_path.append(next_city)
-        current_city = next_city
-    route = [(start, dest) for start, dest in zip(shortest_path, shortest_path[1:])]
-    return shortest_path, route
-
-
-def get_distance(distances: np.array, route: list) -> int:
-    route_distance = 0
-    for origin, destination in route:
-        route_distance += distances[origin][destination]
-    return int(route_distance)
-
-
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame,
     distances: np.ndarray,
@@ -106,8 +86,10 @@ def get_optimal_path(
         columns=cities_locations_gdf["Label"],
     )
     q_table_df.to_csv(f"data/east_africa/{start_city}_{end_city}_q_table.csv")
-    shortest_path, route = get_shortest_path(q_table, start_city_index, end_city_index)
-    route_distance = get_distance(distances, route)
+    shortest_path, route = utils.get_shortest_path(
+        q_table, start_city_index, end_city_index
+    )
+    route_distance = utils.get_distance(distances, route)
     shortest_path = [
         cities_locations_gdf["Label"][city_index] for city_index in shortest_path
     ]
