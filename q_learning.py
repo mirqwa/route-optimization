@@ -29,9 +29,10 @@ def update_q_table(
     current_city: int,
     action: int,
     next_city: int,
+    visited_cities: list,
 ) -> None:
     # the reward is negative since the goal is to have minimum distance
-    reward = -distances[current_city, next_city]
+    reward = -distances[current_city, next_city] * visited_cities.count(current_city)
     current_state_action_value = q_table[current_city, action]
     next_state_action_value = np.max(q_table[next_city, :])
 
@@ -52,13 +53,17 @@ def get_q_learning_cost_table(
     q_table = np.zeros((cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]))
     for epidode in range(num_episodes):
         print(f"Episode {epidode + 1}")
+        visited_cities = []
         current_city = start_city_index
         while current_city != end_city_index:
+            visited_cities.append(current_city)
             action = select_next_action(distances, current_city, q_table)
             if action is None:
                 break
             next_city = action
-            update_q_table(q_table, distances, current_city, action, next_city)
+            update_q_table(
+                q_table, distances, current_city, action, next_city, visited_cities
+            )
 
             current_city = next_city
             if current_city == end_city_index:
