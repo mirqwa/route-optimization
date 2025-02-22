@@ -8,12 +8,17 @@ import constants
 import utils
 
 
+EPSILON = 0.2
+LEARNING_RATE = 0.8
+DISCOUNT_FACTOR = 0.95
+
+
 def select_next_action(
     distances: np.ndarray, current_city: int, q_table: np.ndarray
 ) -> int:
     possible_actions = (
         np.where(distances[current_city, :] > 0)[0]  # exploration
-        if np.random.uniform(0, 1) < constants.EPSILON
+        if np.random.uniform(0, 1) < EPSILON
         else np.where(
             q_table[current_city, :] == np.max(q_table[current_city, :])  # exploitation
         )[0]
@@ -37,9 +42,9 @@ def update_q_table(
     next_state_action_value = np.max(q_table[next_city, :])
 
     q_table[current_city, action] = (
-        1 - constants.LEARNING_RATE
-    ) * current_state_action_value + constants.LEARNING_RATE * (
-        reward + constants.DISCOUNT_FACTOR * next_state_action_value
+        1 - LEARNING_RATE
+    ) * current_state_action_value + LEARNING_RATE * (
+        reward + DISCOUNT_FACTOR * next_state_action_value
     )
 
 
