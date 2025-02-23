@@ -60,9 +60,6 @@ def update_q_table(
         if visited_cities.count((current_city, action)) > 1
         else -distances[current_city, next_city]
     )
-    # reward = -distances[
-    #     current_city, next_city
-    # ]  * visited_cities.count((current_city, action))
     current_state_action_value = q_table[current_city, action]
     next_state_action_value = np.max(q_table[next_city, :])
 
@@ -81,7 +78,6 @@ def get_q_learning_cost_table(
     distances: np.ndarray,
 ) -> np.ndarray:
     q_table = initialize_q_table(distances)
-    # q_table = np.zeros((cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]))
     number_of_visits = defaultdict(int)
     for epidode in range(num_episodes):
         print(f"Episode {epidode + 1}")
