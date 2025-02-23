@@ -11,17 +11,29 @@ import utils
 np.random.seed(0)
 
 EPSILON = 0.2
-LEARNING_RATE = 0.8
-DISCOUNT_FACTOR = 0.8
-EPIDODES = 10000
-MAX_STEPS = 1000
+LEARNING_RATE = 0.01
+DISCOUNT_FACTOR = 0.9
+EPIDODES = 50000
+MAX_STEPS = 200
+NO_OF_NEIGHBORS = 10
+
+
+def initialize_q_table(distances: np.ndarray) -> np.ndarray:
+    q_table = np.zeros((distances.shape[0], distances.shape[0]))
+    for city in range(distances.shape[0]):
+        city_distances = pd.Series(distances[city, :])
+        min_distance = city_distances.sort_values().to_list()[NO_OF_NEIGHBORS]
+        possible_actions = np.where(distances[city, :] < min_distance)[0]
+        for action in range(distances.shape[1]):
+            q_table[city][action] = 0 if action in possible_actions else -float("inf")
+    return q_table
 
 
 def select_next_action(
     distances: np.ndarray, current_city: int, q_table: np.ndarray
 ) -> int:
     city_distances = pd.Series(distances[current_city, :])
-    min_distance = city_distances.sort_values().to_list()[10]
+    min_distance = city_distances.sort_values().to_list()[NO_OF_NEIGHBORS]
     possible_actions = (
         np.where(distances[current_city, :] < min_distance)[0]  # exploration
         if np.random.uniform(0, 1) < EPSILON
@@ -43,7 +55,14 @@ def update_q_table(
     visited_cities: list,
 ) -> None:
     # the reward is negative since the goal is to have minimum distance
-    reward = -distances[current_city, next_city] #* visited_cities.count((current_city, action))
+    reward = (
+        -1000
+        if visited_cities.count((current_city, action)) > 1
+        else -distances[current_city, next_city]
+    )
+    # reward = -distances[
+    #     current_city, next_city
+    # ]  * visited_cities.count((current_city, action))
     current_state_action_value = q_table[current_city, action]
     next_state_action_value = np.max(q_table[next_city, :])
 
@@ -61,7 +80,8 @@ def get_q_learning_cost_table(
     end_city_index: str,
     distances: np.ndarray,
 ) -> np.ndarray:
-    q_table = np.zeros((cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]))
+    q_table = initialize_q_table(distances)
+    # q_table = np.zeros((cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]))
     number_of_visits = defaultdict(int)
     for epidode in range(num_episodes):
         print(f"Episode {epidode + 1}")
