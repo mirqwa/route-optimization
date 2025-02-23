@@ -12,7 +12,7 @@ LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.9
 NO_OF_NEIGHBORS = 10
 MAX_STEPS = 500
-EPISODES = 1000
+EPISODES = 10000
 
 
 def update_q_table(
@@ -22,9 +22,14 @@ def update_q_table(
     action: int,
     next_city: int,
     next_action: list,
+    visited_cities: list,
 ) -> None:
     # the reward is negative since the goal is to have minimum distance
-    reward = -distances[current_city, next_city]
+    reward = (
+        -1000
+        if visited_cities.count((current_city, action)) > 1
+        else -distances[current_city, next_city]
+    )
     current_state_action_value = q_table[current_city, action]
     next_state_action_value = q_table[next_city][next_action]
 
@@ -49,14 +54,16 @@ def train_agent(
             distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
         )
         steps = 0
+        visited_cities = []
         while current_city != end_city_index and steps <= MAX_STEPS:
             steps += 1
+            visited_cities.append((current_city, action))
             next_city = action
             next_action = utils.select_next_action(
                 distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
             )
             update_q_table(
-                q_table, distances, current_city, action, next_city, next_action
+                q_table, distances, current_city, action, next_city, next_action, visited_cities
             )
             current_city = next_city
             action = next_action
