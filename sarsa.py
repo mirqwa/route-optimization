@@ -6,7 +6,9 @@ import numpy as np
 import utils
 
 
+EPSILON = 0.2
 NO_OF_NEIGHBORS = 10
+MAX_STEPS = 500
 
 
 def train_agent(
@@ -17,6 +19,19 @@ def train_agent(
     distances: np.ndarray,
 ) -> np.ndarray:
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
+    for episode in range(num_episodes):
+        print(f"Episode {episode + 1}")
+        current_city = start_city_index
+        steps = 0
+        while current_city != end_city_index and steps <= MAX_STEPS:
+            steps += 1
+            action = utils.select_next_action(
+                distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+            )
+            next_city = action
+            next_action = utils.select_next_action(
+                distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
+            )
 
 
 def get_optimal_path(
@@ -32,6 +47,9 @@ def get_optimal_path(
         cities_locations_gdf["Label"] == end_city
     ].index[0]
     train_agent(cities_locations_gdf, 1000, start_city_index, end_city_index, distances)
+    shortest_path = None
+    route = None
+    return shortest_path, route
 
 
 def main(api_key: str):
