@@ -149,7 +149,7 @@ def main(api_key: str) -> None:
     cities_locations_gdf = utils.get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
-    # utils.plot_cities(cities_locations_gdf)
+    utils.plot_cities(cities_locations_gdf)
     distances = utils.get_intercity_distances(
         cities_locations_gdf, g_maps_client, use_saved_distances=True
     )
