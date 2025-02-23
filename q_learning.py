@@ -18,23 +18,6 @@ MAX_STEPS = 500
 NO_OF_NEIGHBORS = 10
 
 
-def select_next_action(
-    distances: np.ndarray, current_city: int, q_table: np.ndarray
-) -> int:
-    city_distances = pd.Series(distances[current_city, :])
-    min_distance = city_distances.sort_values().to_list()[NO_OF_NEIGHBORS]
-    possible_actions = (
-        np.where(distances[current_city, :] < min_distance)[0]  # exploration
-        if np.random.uniform(0, 1) < EPSILON
-        else np.where(
-            q_table[current_city, :] == np.max(q_table[current_city, :])  # exploitation
-        )[0]
-    )
-    if len(possible_actions) == 0:
-        return
-    return np.random.choice(possible_actions)
-
-
 def update_q_table(
     q_table: np.ndarray,
     distances: np.ndarray,
@@ -75,7 +58,9 @@ def get_q_learning_cost_table(
         steps = 0
         while current_city != end_city_index and steps <= MAX_STEPS:
             steps += 1
-            action = select_next_action(distances, current_city, q_table)
+            action = utils.select_next_action(
+                distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+            )
             visited_cities.append((current_city, action))
             if action is None:
                 break
