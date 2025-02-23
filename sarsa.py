@@ -7,8 +7,30 @@ import utils
 
 
 EPSILON = 0.2
+LEARNING_RATE = 0.01
+DISCOUNT_FACTOR = 0.9
 NO_OF_NEIGHBORS = 10
 MAX_STEPS = 500
+
+
+def update_q_table(
+    q_table: np.ndarray,
+    distances: np.ndarray,
+    current_city: int,
+    action: int,
+    next_city: int,
+    next_action: list,
+) -> None:
+    # the reward is negative since the goal is to have minimum distance
+    reward = -distances[current_city, next_city]
+    current_state_action_value = q_table[current_city, action]
+    next_state_action_value = q_table[next_city][next_action]
+
+    q_table[current_city, action] = (
+        1 - LEARNING_RATE
+    ) * current_state_action_value + LEARNING_RATE * (
+        reward + DISCOUNT_FACTOR * next_state_action_value
+    )
 
 
 def train_agent(
@@ -22,16 +44,21 @@ def train_agent(
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
         current_city = start_city_index
+        action = utils.select_next_action(
+            distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+        )
         steps = 0
         while current_city != end_city_index and steps <= MAX_STEPS:
             steps += 1
-            action = utils.select_next_action(
-                distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
-            )
             next_city = action
             next_action = utils.select_next_action(
                 distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
             )
+            update_q_table(
+                q_table, distances, current_city, action, next_city, next_action
+            )
+            current_city = next_city
+            action = next_action
 
 
 def get_optimal_path(
