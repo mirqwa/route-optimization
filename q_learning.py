@@ -13,20 +13,9 @@ np.random.seed(0)
 EPSILON = 0.2
 LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.9
-EPIDODES = 50000
+EPIDODES = 10000
 MAX_STEPS = 500
 NO_OF_NEIGHBORS = 10
-
-
-def initialize_q_table(distances: np.ndarray) -> np.ndarray:
-    q_table = np.zeros((distances.shape[0], distances.shape[0]))
-    for city in range(distances.shape[0]):
-        city_distances = pd.Series(distances[city, :])
-        min_distance = city_distances.sort_values().to_list()[NO_OF_NEIGHBORS]
-        possible_actions = np.where(distances[city, :] < min_distance)[0]
-        for action in range(distances.shape[1]):
-            q_table[city][action] = 0 if action in possible_actions else -float("inf")
-    return q_table
 
 
 def select_next_action(
@@ -77,7 +66,7 @@ def get_q_learning_cost_table(
     end_city_index: str,
     distances: np.ndarray,
 ) -> np.ndarray:
-    q_table = initialize_q_table(distances)
+    q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
     number_of_visits = defaultdict(int)
     for epidode in range(num_episodes):
         print(f"Episode {epidode + 1}")
