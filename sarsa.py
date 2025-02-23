@@ -2,6 +2,7 @@ import argparse
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 
 import utils
 
@@ -11,6 +12,7 @@ LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.9
 NO_OF_NEIGHBORS = 10
 MAX_STEPS = 500
+EPISODES = 1000
 
 
 def update_q_table(
@@ -34,7 +36,6 @@ def update_q_table(
 
 
 def train_agent(
-    cities_locations_gdf: gpd.GeoDataFrame,
     num_episodes: int,
     start_city_index: str,
     end_city_index: str,
@@ -59,6 +60,7 @@ def train_agent(
             )
             current_city = next_city
             action = next_action
+    return q_table
 
 
 def get_optimal_path(
@@ -73,9 +75,24 @@ def get_optimal_path(
     end_city_index = cities_locations_gdf[
         cities_locations_gdf["Label"] == end_city
     ].index[0]
-    train_agent(cities_locations_gdf, 1000, start_city_index, end_city_index, distances)
-    shortest_path = None
-    route = None
+    q_table = train_agent(EPISODES, start_city_index, end_city_index, distances)
+    q_table_df = pd.DataFrame(
+        data=q_table,
+        index=cities_locations_gdf["Label"],
+        columns=cities_locations_gdf["Label"],
+    )
+    q_table_df.to_csv(
+        f"data/east_africa/{start_city}_{end_city}_q_table_{EPISODES}.csv"
+    )
+    shortest_path, route = utils.get_shortest_path(
+        q_table, start_city_index, end_city_index
+    )
+    route_distance = utils.get_distance(distances, route)
+    print("The route distance", route_distance)
+    shortest_path = [
+        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
+    ]
+    shortest_path = " -> ".join(shortest_path)
     return shortest_path, route
 
 
@@ -93,6 +110,9 @@ def main(api_key: str):
     shortest_path, route = get_optimal_path(
         cities_locations_gdf, distances, "Nairobi", "Kampala"
     )
+    print(shortest_path)
+    print(route)
+    utils.plot_cities(cities_locations_gdf, route)
 
 
 if __name__ == "__main__":

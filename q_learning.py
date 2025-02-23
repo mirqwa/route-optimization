@@ -98,7 +98,6 @@ def get_optimal_path(
         index=cities_locations_gdf["Label"],
         columns=cities_locations_gdf["Label"],
     )
-    q_table_df = q_table_df[["Nairobi", "Kampala", "Mau Summit", "Londiani Junction"]]
     q_table_df.to_csv(
         f"data/east_africa/{start_city}_{end_city}_q_table_{EPIDODES}.csv"
     )
