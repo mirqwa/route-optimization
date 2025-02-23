@@ -13,6 +13,38 @@ from googlemaps import Client
 import constants
 
 
+def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarray:
+    q_table = np.zeros((distances.shape[0], distances.shape[0]))
+    for city in range(distances.shape[0]):
+        city_distances = pd.Series(distances[city, :])
+        min_distance = city_distances.sort_values().to_list()[no_of_neighbors]
+        possible_actions = np.where(distances[city, :] < min_distance)[0]
+        for action in range(distances.shape[1]):
+            q_table[city][action] = 0 if action in possible_actions else -float("inf")
+    return q_table
+
+
+def select_next_action(
+    distances: np.ndarray,
+    current_city: int,
+    q_table: np.ndarray,
+    no_of_neighbors: int,
+    epsilon: float,
+) -> int:
+    city_distances = pd.Series(distances[current_city, :])
+    min_distance = city_distances.sort_values().to_list()[no_of_neighbors]
+    possible_actions = (
+        np.where(distances[current_city, :] < min_distance)[0]  # exploration
+        if np.random.uniform(0, 1) < epsilon
+        else np.where(
+            q_table[current_city, :] == np.max(q_table[current_city, :])  # exploitation
+        )[0]
+    )
+    if len(possible_actions) == 0:
+        return
+    return np.random.choice(possible_actions)
+
+
 def annotate_route(
     ax: plt.Axes, data_gdf: gpd.GeoDataFrame, i: int, j: int, color: str
 ) -> None:

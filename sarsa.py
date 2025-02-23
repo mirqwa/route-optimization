@@ -1,5 +1,4 @@
 import argparse
-from collections import defaultdict
 
 import geopandas as gpd
 import numpy as np
@@ -8,14 +7,12 @@ import pandas as pd
 import utils
 
 
-np.random.seed(0)
-
 EPSILON = 0.2
 LEARNING_RATE = 0.01
-DISCOUNT_FACTOR = 0.9
-EPIDODES = 10000
-MAX_STEPS = 500
+DISCOUNT_FACTOR = 0.8
 NO_OF_NEIGHBORS = 10
+MAX_STEPS = 500
+EPISODES = 10000
 
 
 def update_q_table(
@@ -24,6 +21,7 @@ def update_q_table(
     current_city: int,
     action: int,
     next_city: int,
+    next_action: list,
     visited_cities: list,
 ) -> None:
     # the reward is negative since the goal is to have minimum distance
@@ -33,7 +31,7 @@ def update_q_table(
         else -distances[current_city, next_city]
     )
     current_state_action_value = q_table[current_city, action]
-    next_state_action_value = np.max(q_table[next_city, :])
+    next_state_action_value = q_table[next_city][next_action]
 
     q_table[current_city, action] = (
         1 - LEARNING_RATE
@@ -42,39 +40,33 @@ def update_q_table(
     )
 
 
-def get_q_learning_cost_table(
-    cities_locations_gdf: gpd.GeoDataFrame,
+def train_agent(
     num_episodes: int,
     start_city_index: str,
     end_city_index: str,
     distances: np.ndarray,
 ) -> np.ndarray:
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
-    number_of_visits = defaultdict(int)
-    for epidode in range(num_episodes):
-        print(f"Episode {epidode + 1}")
-        visited_cities = []
+    for episode in range(num_episodes):
+        print(f"Episode {episode + 1}")
         current_city = start_city_index
+        action = utils.select_next_action(
+            distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+        )
         steps = 0
+        visited_cities = []
         while current_city != end_city_index and steps <= MAX_STEPS:
             steps += 1
-            action = utils.select_next_action(
-                distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
-            )
             visited_cities.append((current_city, action))
-            if action is None:
-                break
             next_city = action
-            update_q_table(
-                q_table, distances, current_city, action, next_city, visited_cities
+            next_action = utils.select_next_action(
+                distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
             )
-
+            update_q_table(
+                q_table, distances, current_city, action, next_city, next_action, visited_cities
+            )
             current_city = next_city
-            if current_city == end_city_index:
-                break
-        for city, action in visited_cities:
-            number_of_visits[cities_locations_gdf.iloc[city].to_dict()["Label"]] += 1
-    # print(dict(number_of_visits))
+            action = next_action
     return q_table
 
 
@@ -90,16 +82,14 @@ def get_optimal_path(
     end_city_index = cities_locations_gdf[
         cities_locations_gdf["Label"] == end_city
     ].index[0]
-    q_table = get_q_learning_cost_table(
-        cities_locations_gdf, EPIDODES, start_city_index, end_city_index, distances
-    )
+    q_table = train_agent(EPISODES, start_city_index, end_city_index, distances)
     q_table_df = pd.DataFrame(
         data=q_table,
         index=cities_locations_gdf["Label"],
         columns=cities_locations_gdf["Label"],
     )
     q_table_df.to_csv(
-        f"data/east_africa/{start_city}_{end_city}_q_table_{EPIDODES}.csv"
+        f"data/east_africa/{start_city}_{end_city}_q_table_{EPISODES}.csv"
     )
     shortest_path, route = utils.get_shortest_path(
         q_table, start_city_index, end_city_index
@@ -113,12 +103,12 @@ def get_optimal_path(
     return shortest_path, route
 
 
-def main(api_key: str) -> None:
+def main(api_key: str):
     g_maps_client = utils.get_gmaps_client(api_key)
     cities_locations_gdf = utils.get_cities_coordinates(
         g_maps_client, use_saved_coordinates=True
     )
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
     distances = utils.get_intercity_distances(
         cities_locations_gdf, g_maps_client, use_saved_distances=True
     )
