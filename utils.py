@@ -213,6 +213,19 @@ def get_distance(distances: np.array, route: list) -> int:
     return int(route_distance)
 
 
+def get_training_data(api_key: str) -> tuple:
+    g_maps_client = get_gmaps_client(api_key)
+    cities_locations_gdf = get_cities_coordinates(
+        g_maps_client, use_saved_coordinates=True
+    )
+    distances = get_intercity_distances(
+        cities_locations_gdf, g_maps_client, use_saved_distances=True
+    )
+    distances = distances / 1000
+    distances = np.where(distances == 0, float("inf"), distances)
+    return cities_locations_gdf, distances
+
+
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
     cities_locations_gdf = get_cities_coordinates(
