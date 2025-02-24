@@ -83,23 +83,15 @@ def get_optimal_path(
         cities_locations_gdf["Label"] == end_city
     ].index[0]
     q_table = train_agent(EPISODES, start_city_index, end_city_index, distances)
-    q_table_df = pd.DataFrame(
-        data=q_table,
-        index=cities_locations_gdf["Label"],
-        columns=cities_locations_gdf["Label"],
+
+    shortest_path, route = utils.get_optimal_path_and_distance(
+        cities_locations_gdf,
+        distances,
+        q_table,
+        start_city_index,
+        end_city_index,
+        f"data/east_africa/{start_city}_{end_city}_sarsa_q_table_{EPISODES}.csv",
     )
-    q_table_df.to_csv(
-        f"data/east_africa/{start_city}_{end_city}_q_table_{EPISODES}.csv"
-    )
-    shortest_path, route = utils.get_shortest_path(
-        q_table, start_city_index, end_city_index
-    )
-    route_distance = utils.get_distance(distances, route)
-    print("The route distance", route_distance)
-    shortest_path = [
-        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
-    ]
-    shortest_path = " -> ".join(shortest_path)
     return shortest_path, route
 
 

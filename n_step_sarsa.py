@@ -2,6 +2,7 @@ import argparse
 
 import geopandas as gpd
 import numpy as np
+import pandas as pd
 
 import utils
 
@@ -104,6 +105,15 @@ def get_optimal_path(
         cities_locations_gdf["Label"] == end_city
     ].index[0]
     q_table = train_agent(EPISODES, start_city_index, end_city_index, distances, 3)
+    shortest_path, route = utils.get_optimal_path_and_distance(
+        cities_locations_gdf,
+        distances,
+        q_table,
+        start_city_index,
+        end_city_index,
+        f"data/east_africa/{start_city}_{end_city}_n_step_sarsa_q_table_{EPISODES}.csv",
+    )
+    return shortest_path, route
 
 
 def main(api_key: str) -> None:
