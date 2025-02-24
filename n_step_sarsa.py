@@ -59,10 +59,16 @@ def train_agent(
             distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
         )
         actions = [action]
+        visited_cities = []
         T = float("inf")
         for t in range(MAX_STEPS):
             if t < T:
-                reward = -distances[current_city, action]
+                visited_cities.append((current_city, action))
+                reward = (
+                    -1000
+                    if visited_cities.count((current_city, action)) > 1
+                    else -distances[current_city, action]
+                )
                 current_city = action
                 states.append(current_city)
                 rewards.append(reward)
@@ -119,7 +125,12 @@ def get_optimal_path(
 def main(api_key: str) -> None:
     cities_locations_gdf, distances = utils.get_training_data(api_key)
     # utils.plot_cities(cities_locations_gdf)
-    get_optimal_path(cities_locations_gdf, distances, "Nairobi", "Kampala", 3)
+    shortest_path, route = get_optimal_path(
+        cities_locations_gdf, distances, "Nairobi", "Kampala", 3
+    )
+    print(shortest_path)
+    print(route)
+    utils.plot_cities(cities_locations_gdf, route)
 
 
 if __name__ == "__main__":
