@@ -13,6 +13,7 @@ LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.8
 EPISODES = 1000
 NO_OF_NEIGHBORS = 10
+MAX_STEPS = 1000
 
 
 def train_agent(
@@ -32,11 +33,19 @@ def train_agent(
             distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
         )
         T = float("inf")
-        while current_city != end_city_index:
-            next_city = action
-            reward = -distances[current_city, action]
-            states.append(next_city)
-            rewards.append(reward)
+        for t in range(MAX_STEPS):
+            if t < T:
+                next_city = action
+                reward = -distances[current_city, action]
+                states.append(next_city)
+                rewards.append(reward)
+                if next_city == end_city_index:
+                    T = t + 1
+                else:
+                    next_action = utils.select_next_action(
+                        distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
+                    )
+            tau = t - n + 1
 
 
 def get_optimal_path(
