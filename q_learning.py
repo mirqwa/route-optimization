@@ -13,7 +13,7 @@ np.random.seed(0)
 EPSILON = 0.2
 LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.9
-EPIDODES = 10000
+EPISODES = 10000
 MAX_STEPS = 500
 NO_OF_NEIGHBORS = 10
 
@@ -91,39 +91,23 @@ def get_optimal_path(
         cities_locations_gdf["Label"] == end_city
     ].index[0]
     q_table = get_q_learning_cost_table(
-        cities_locations_gdf, EPIDODES, start_city_index, end_city_index, distances
+        cities_locations_gdf, EPISODES, start_city_index, end_city_index, distances
     )
-    q_table_df = pd.DataFrame(
-        data=q_table,
-        index=cities_locations_gdf["Label"],
-        columns=cities_locations_gdf["Label"],
+
+    shortest_path, route = utils.get_optimal_path_and_distance(
+        cities_locations_gdf,
+        distances,
+        q_table,
+        start_city_index,
+        end_city_index,
+        f"data/east_africa/{start_city}_{end_city}_q_learning_q_table_{EPISODES}.csv",
     )
-    q_table_df.to_csv(
-        f"data/east_africa/{start_city}_{end_city}_q_table_{EPIDODES}.csv"
-    )
-    shortest_path, route = utils.get_shortest_path(
-        q_table, start_city_index, end_city_index
-    )
-    route_distance = utils.get_distance(distances, route)
-    print("The route distance", route_distance)
-    shortest_path = [
-        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
-    ]
-    shortest_path = " -> ".join(shortest_path)
     return shortest_path, route
 
 
 def main(api_key: str) -> None:
-    g_maps_client = utils.get_gmaps_client(api_key)
-    cities_locations_gdf = utils.get_cities_coordinates(
-        g_maps_client, use_saved_coordinates=True
-    )
+    cities_locations_gdf, distances = utils.get_training_data(api_key)
     utils.plot_cities(cities_locations_gdf)
-    distances = utils.get_intercity_distances(
-        cities_locations_gdf, g_maps_client, use_saved_distances=True
-    )
-    distances = distances / 1000
-    distances = np.where(distances == 0, float("inf"), distances)
     shortest_path, route = get_optimal_path(
         cities_locations_gdf, distances, "Nairobi", "Kampala"
     )

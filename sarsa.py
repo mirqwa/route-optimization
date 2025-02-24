@@ -83,37 +83,21 @@ def get_optimal_path(
         cities_locations_gdf["Label"] == end_city
     ].index[0]
     q_table = train_agent(EPISODES, start_city_index, end_city_index, distances)
-    q_table_df = pd.DataFrame(
-        data=q_table,
-        index=cities_locations_gdf["Label"],
-        columns=cities_locations_gdf["Label"],
+
+    shortest_path, route = utils.get_optimal_path_and_distance(
+        cities_locations_gdf,
+        distances,
+        q_table,
+        start_city_index,
+        end_city_index,
+        f"data/east_africa/{start_city}_{end_city}_sarsa_q_table_{EPISODES}.csv",
     )
-    q_table_df.to_csv(
-        f"data/east_africa/{start_city}_{end_city}_q_table_{EPISODES}.csv"
-    )
-    shortest_path, route = utils.get_shortest_path(
-        q_table, start_city_index, end_city_index
-    )
-    route_distance = utils.get_distance(distances, route)
-    print("The route distance", route_distance)
-    shortest_path = [
-        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
-    ]
-    shortest_path = " -> ".join(shortest_path)
     return shortest_path, route
 
 
 def main(api_key: str):
-    g_maps_client = utils.get_gmaps_client(api_key)
-    cities_locations_gdf = utils.get_cities_coordinates(
-        g_maps_client, use_saved_coordinates=True
-    )
-    # utils.plot_cities(cities_locations_gdf)
-    distances = utils.get_intercity_distances(
-        cities_locations_gdf, g_maps_client, use_saved_distances=True
-    )
-    distances = distances / 1000
-    distances = np.where(distances == 0, float("inf"), distances)
+    cities_locations_gdf, distances = utils.get_training_data(api_key)
+    utils.plot_cities(cities_locations_gdf)
     shortest_path, route = get_optimal_path(
         cities_locations_gdf, distances, "Nairobi", "Kampala"
     )
