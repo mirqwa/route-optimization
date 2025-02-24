@@ -1,11 +1,45 @@
 import argparse
 
+import geopandas as gpd
+import numpy as np
+
 import utils
+
+
+EPISODES = 1000
+NO_OF_NEIGHBORS = 10
+
+
+def train_agent(
+    num_episodes: int,
+    start_city_index: str,
+    end_city_index: str,
+    distances: np.ndarray,
+    n: int,
+) -> np.ndarray:
+    q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
+
+
+def get_optimal_path(
+    cities_locations_gdf: gpd.GeoDataFrame,
+    distances: np.ndarray,
+    start_city: str,
+    end_city: str,
+    n: int,
+) -> tuple:
+    start_city_index = cities_locations_gdf[
+        cities_locations_gdf["Label"] == start_city
+    ].index[0]
+    end_city_index = cities_locations_gdf[
+        cities_locations_gdf["Label"] == end_city
+    ].index[0]
+    q_table = train_agent(EPISODES, start_city_index, end_city_index, distances, 3)
 
 
 def main(api_key: str) -> None:
     cities_locations_gdf, distances = utils.get_training_data(api_key)
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
+    get_optimal_path(cities_locations_gdf, distances, "Nairobi", "Kampala", 3)
 
 
 if __name__ == "__main__":
