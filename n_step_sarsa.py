@@ -6,6 +6,8 @@ import numpy as np
 import utils
 
 
+np.random.seed(32)
+
 EPSILON = 0.2
 LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.8
@@ -23,11 +25,18 @@ def train_agent(
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
+        states = []
+        rewards = []
         current_city = start_city_index
         action = utils.select_next_action(
             distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
         )
         T = float("inf")
+        while current_city != end_city_index:
+            next_city = action
+            reward = -distances[current_city, action]
+            states.append(next_city)
+            rewards.append(reward)
 
 
 def get_optimal_path(
