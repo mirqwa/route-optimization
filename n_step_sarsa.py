@@ -2,19 +2,19 @@ import argparse
 
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 
 import utils
 
 
-np.random.seed(32)
+np.random.seed(0)
 
 EPSILON = 0.2
 LEARNING_RATE = 0.01
 DISCOUNT_FACTOR = 0.9
 EPISODES = 10000
 NO_OF_NEIGHBORS = 10
-MAX_STEPS = 1000
+MAX_STEPS = 1500
+N_STEPS = 3
 
 
 def update_q_table(
@@ -110,7 +110,7 @@ def get_optimal_path(
     end_city_index = cities_locations_gdf[
         cities_locations_gdf["Label"] == end_city
     ].index[0]
-    q_table = train_agent(EPISODES, start_city_index, end_city_index, distances, 3)
+    q_table = train_agent(EPISODES, start_city_index, end_city_index, distances, N_STEPS)
     shortest_path, route = utils.get_optimal_path_and_distance(
         cities_locations_gdf,
         distances,
