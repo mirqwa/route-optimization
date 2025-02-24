@@ -6,6 +6,9 @@ import numpy as np
 import utils
 
 
+EPSILON = 0.2
+LEARNING_RATE = 0.01
+DISCOUNT_FACTOR = 0.8
 EPISODES = 1000
 NO_OF_NEIGHBORS = 10
 
@@ -18,6 +21,13 @@ def train_agent(
     n: int,
 ) -> np.ndarray:
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
+    for episode in range(num_episodes):
+        print(f"Episode {episode + 1}")
+        current_city = start_city_index
+        action = utils.select_next_action(
+            distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+        )
+        T = float("inf")
 
 
 def get_optimal_path(
