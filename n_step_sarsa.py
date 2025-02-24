@@ -124,7 +124,7 @@ def get_optimal_path(
 
 def main(api_key: str) -> None:
     cities_locations_gdf, distances = utils.get_training_data(api_key)
-    # utils.plot_cities(cities_locations_gdf)
+    utils.plot_cities(cities_locations_gdf)
     shortest_path, route = get_optimal_path(
         cities_locations_gdf, distances, "Nairobi", "Kampala", 3
     )
