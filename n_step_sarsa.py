@@ -26,12 +26,13 @@ def train_agent(
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
-        states = []
-        rewards = []
         current_city = start_city_index
+        states = [current_city]
+        rewards = []
         action = utils.select_next_action(
             distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
         )
+        actions = [action]
         T = float("inf")
         for t in range(MAX_STEPS):
             if t < T:
@@ -45,7 +46,28 @@ def train_agent(
                     next_action = utils.select_next_action(
                         distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
                     )
+                    actions.append(next_action)
             tau = t - n + 1
+            if tau >= 0:
+                G = sum(
+                    [
+                        DISCOUNT_FACTOR ** (i - tau) * rewards[i]
+                        for i in range(tau, min(tau + n, T))
+                    ]
+                )
+                G = (
+                    G
+                    + DISCOUNT_FACTOR**n * q_table[states[tau + n]][actions[tau + n]]
+                    if t + n < T
+                    else G
+                )
+
+                q_table[states[tau]][actions[tau]] = (1 - LEARNING_RATE) * q_table[
+                    states[tau]
+                ][actions[tau]] + LEARNING_RATE * G
+            if tau == T - 1:
+                break
+    return q_table
 
 
 def get_optimal_path(
