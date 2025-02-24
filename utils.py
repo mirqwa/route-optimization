@@ -226,6 +226,34 @@ def get_training_data(api_key: str) -> tuple:
     return cities_locations_gdf, distances
 
 
+def get_optimal_path_and_distance(
+    cities_locations_gdf: gpd.GeoDataFrame,
+    distances: np.ndarray,
+    q_table: np.ndarray,
+    start_city_index: int,
+    end_city_index: str,
+    file_name: str,
+) -> tuple:
+    q_table_df = pd.DataFrame(
+        data=q_table,
+        index=cities_locations_gdf["Label"],
+        columns=cities_locations_gdf["Label"],
+    )
+    q_table_df.to_csv(
+        file_name
+    )
+    shortest_path, route = get_shortest_path(
+        q_table, start_city_index, end_city_index
+    )
+    route_distance = get_distance(distances, route)
+    print("The route distance", route_distance)
+    shortest_path = [
+        cities_locations_gdf["Label"][city_index] for city_index in shortest_path
+    ]
+    shortest_path = " -> ".join(shortest_path)
+    return shortest_path, route
+
+
 def main(api_key: str) -> None:
     g_maps_client = get_gmaps_client(api_key)
     cities_locations_gdf = get_cities_coordinates(
