@@ -16,6 +16,31 @@ NO_OF_NEIGHBORS = 10
 MAX_STEPS = 1000
 
 
+def update_q_table(
+    q_table: np.ndarray,
+    states: list,
+    actions: list,
+    rewards: list,
+    tau: int,
+    n: int,
+    t: int,
+    T: int,
+) -> np.ndarray:
+    G = sum(
+        [DISCOUNT_FACTOR ** (i - tau) * rewards[i] for i in range(tau, min(tau + n, T))]
+    )
+    G = (
+        G + DISCOUNT_FACTOR**n * q_table[states[tau + n]][actions[tau + n]]
+        if t + n < T
+        else G
+    )
+
+    q_table[states[tau]][actions[tau]] = (1 - LEARNING_RATE) * q_table[states[tau]][
+        actions[tau]
+    ] + LEARNING_RATE * G
+    return q_table
+
+
 def train_agent(
     num_episodes: int,
     start_city_index: str,
@@ -50,22 +75,16 @@ def train_agent(
                     action = next_action
             tau = t - n + 1
             if tau >= 0:
-                G = sum(
-                    [
-                        DISCOUNT_FACTOR ** (i - tau) * rewards[i]
-                        for i in range(tau, min(tau + n, T))
-                    ]
+                q_table = update_q_table(
+                    q_table,
+                    states,
+                    actions,
+                    rewards,
+                    tau,
+                    n,
+                    t,
+                    T,
                 )
-                G = (
-                    G
-                    + DISCOUNT_FACTOR**n * q_table[states[tau + n]][actions[tau + n]]
-                    if t + n < T
-                    else G
-                )
-
-                q_table[states[tau]][actions[tau]] = (1 - LEARNING_RATE) * q_table[
-                    states[tau]
-                ][actions[tau]] + LEARNING_RATE * G
             if tau == T - 1:
                 break
     return q_table
