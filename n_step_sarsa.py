@@ -47,6 +47,7 @@ def train_agent(
                         distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
                     )
                     actions.append(next_action)
+                    action = next_action
             tau = t - n + 1
             if tau >= 0:
                 G = sum(
