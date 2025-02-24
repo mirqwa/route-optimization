@@ -36,15 +36,15 @@ def train_agent(
         T = float("inf")
         for t in range(MAX_STEPS):
             if t < T:
-                next_city = action
                 reward = -distances[current_city, action]
-                states.append(next_city)
+                current_city = action
+                states.append(current_city)
                 rewards.append(reward)
-                if next_city == end_city_index:
+                if current_city == end_city_index:
                     T = t + 1
                 else:
                     next_action = utils.select_next_action(
-                        distances, next_city, q_table, NO_OF_NEIGHBORS, EPSILON
+                        distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
                     )
                     actions.append(next_action)
                     action = next_action
