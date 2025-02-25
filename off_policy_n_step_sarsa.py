@@ -33,11 +33,11 @@ def update_q_table(
     t: int,
     T: int,
 ) -> np.ndarray:
-    current_states = [states[i] for i in range(tau, min(tau + n - 1, T - 1))]
-    current_actions = [actions[i] for i in range(tau, min(tau + n - 1, T - 1))]
-    importance_sampling_ratio = get_importance_sampling_ratio(
-        q_table, current_states, current_actions
-    )
+    # current_states = [states[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    # current_actions = [actions[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    # importance_sampling_ratio = get_importance_sampling_ratio(
+    #     q_table, current_states, current_actions
+    # )
     G = sum(
         [DISCOUNT_FACTOR ** (i - tau) * rewards[i] for i in range(tau, min(tau + n, T))]
     )
@@ -102,6 +102,10 @@ def train_agent(
                     n,
                     t,
                     T,
+                )
+                action_with_max_value = np.argmax(q_table[tau])
+                target_policy = utils.update_policy(
+                    target_policy, EPSILON, tau, action_with_max_value
                 )
             if tau == T - 1:
                 break
