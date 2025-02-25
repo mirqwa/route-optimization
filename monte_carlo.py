@@ -44,8 +44,17 @@ def state_action_pair_exists_earlier(
 
 
 def get_optimal_path(
-    cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
+    cities_locations_gdf: gpd.GeoDataFrame,
+    distances: np.ndarray,
+    start_city: str,
+    end_city: str,
 ) -> tuple:
+    start_city_index = cities_locations_gdf[
+        cities_locations_gdf["Label"] == start_city
+    ].index[0]
+    end_city_index = cities_locations_gdf[
+        cities_locations_gdf["Label"] == end_city
+    ].index[0]
     policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
     state_action_values = utils.initialize_state_action_values(
         cities_locations_gdf, policy
@@ -54,7 +63,7 @@ def get_optimal_path(
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
-        episode_results = generate_episode(policy, 0, 15)
+        episode_results = generate_episode(policy, start_city_index, end_city_index)
         G = 0
         current_time_step = len(episode_results) - 1
         for state, action in reversed(episode_results):
@@ -73,7 +82,9 @@ def get_optimal_path(
             policy = utils.update_policy(policy, EPSILON, state, action_with_max_value)
             current_time_step -= 1
 
-    shortest_path, route = utils.get_shortest_path(state_action_values, 0, 15)
+    shortest_path, route = utils.get_shortest_path(
+        state_action_values, start_city_index, end_city_index
+    )
 
     route_distance = utils.get_distance(distances, route)
     shortest_path = [
@@ -87,7 +98,9 @@ def get_optimal_path(
 def main(api_key: str) -> None:
     cities_locations_gdf, distances = utils.get_training_data(api_key)
     utils.plot_cities(cities_locations_gdf)
-    shortest_path, route = get_optimal_path(cities_locations_gdf, distances)
+    shortest_path, route = get_optimal_path(
+        cities_locations_gdf, distances, "Nairobi", "Kampala"
+    )
     print(shortest_path)
     print(route)
     utils.plot_cities(cities_locations_gdf, route)
