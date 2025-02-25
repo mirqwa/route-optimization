@@ -76,7 +76,7 @@ def train_agent(
 ) -> np.ndarray:
     behavior_policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
     target_policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
-    q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
+    q_table = utils.initialize_q_table_using_policy(behavior_policy)
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
         current_city = start_city_index
@@ -120,8 +120,17 @@ def train_agent(
                     target_policy,
                 )
                 action_with_max_value = np.argmax(q_table[states[tau]])
+                behavior_policy = utils.update_policy(
+                    behavior_policy,
+                    EPSILON,
+                    states[tau],
+                    action_with_max_value,
+                )
                 target_policy = utils.update_policy(
-                    target_policy, EPSILON, states[tau], action_with_max_value
+                    target_policy,
+                    EPSILON,
+                    states[tau],
+                    action_with_max_value,
                 )
             if tau == T - 1:
                 break

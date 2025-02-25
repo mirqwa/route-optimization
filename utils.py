@@ -35,6 +35,17 @@ def initialize_policy(distances: np.ndarray, no_of_neighbors: int) -> dict:
     return dict(policy)
 
 
+def initialize_q_table_using_policy(policy) -> np.ndarray:
+    q_table = np.zeros((len(policy.keys()), len(policy.keys())))
+    for state in range(q_table.shape[0]):
+        possible_actions = [
+            list(action_prob.keys())[0] for action_prob in policy[state]
+        ]
+        for action in range(q_table.shape[1]):
+            q_table[state][action] = 0 if action in possible_actions else -float("inf")
+    return q_table
+
+
 def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarray:
     q_table = np.zeros((distances.shape[0], distances.shape[0]))
     for city in range(distances.shape[0]):
@@ -287,8 +298,8 @@ def get_optimal_path_and_distance(
     )
     q_table_df.to_csv(file_name)
     shortest_path, route = get_shortest_path(q_table, start_city_index, end_city_index)
-    # route_distance = get_distance(distances, route)
-    # print("The route distance", route_distance)
+    route_distance = get_distance(distances, route)
+    print("The route distance", route_distance)
     shortest_path = [
         cities_locations_gdf["Label"][city_index] for city_index in shortest_path
     ]
