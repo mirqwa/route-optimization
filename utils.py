@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 from pathlib import Path
 
 import contextily as cx
@@ -13,12 +14,44 @@ from googlemaps import Client
 import constants
 
 
+def get_possible_state_actions(distances: np.ndarray, no_of_neighbors: int) -> dict:
+    states_actions = {}
+    for i in range(distances.shape[0]):
+        city_distances = pd.Series(distances[i, :])
+        city_distances = city_distances.sort_values()
+        actions = [
+            action for action in city_distances[:no_of_neighbors].index if action != i
+        ]
+        states_actions[i] = actions
+    return states_actions
+
+
+def initialize_policy(distances: np.ndarray, no_of_neighbors: int) -> dict:
+    possible_state_actions = get_possible_state_actions(distances, no_of_neighbors)
+    policy = defaultdict(list)
+    for state, actions in possible_state_actions.items():
+        for action in actions:
+            policy[state].append({action: 1 / len(actions)})
+    return dict(policy)
+
+
+def initialize_q_table_using_policy(policy) -> np.ndarray:
+    q_table = np.zeros((len(policy.keys()), len(policy.keys())))
+    for state in range(q_table.shape[0]):
+        possible_actions = [
+            list(action_prob.keys())[0] for action_prob in policy[state]
+        ]
+        for action in range(q_table.shape[1]):
+            q_table[state][action] = 0 if action in possible_actions else -float("inf")
+    return q_table
+
+
 def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarray:
     q_table = np.zeros((distances.shape[0], distances.shape[0]))
     for city in range(distances.shape[0]):
         city_distances = pd.Series(distances[city, :])
         min_distance = city_distances.sort_values().to_list()[no_of_neighbors]
-        possible_actions = np.where(distances[city, :] < min_distance)[0]
+        possible_actions = np.where(distances[city, :] <= min_distance)[0]
         for action in range(distances.shape[1]):
             q_table[city][action] = 0 if action in possible_actions else -float("inf")
     return q_table
@@ -43,6 +76,30 @@ def select_next_action(
     if len(possible_actions) == 0:
         return
     return np.random.choice(possible_actions)
+
+
+def select_action_from_policy(policy: dict, current_state: int) -> tuple[int]:
+    actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
+    probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
+    action = np.random.choice(actions, 1, replace=False, p=probs)[0]
+    next_state = action
+    return action, next_state
+
+
+def update_policy(
+    policy: dict, epsilon: float, state: int, action_with_max_value: int
+) -> dict:
+    new_state_policy = []
+    for state_policy in policy[state]:
+        action = list(state_policy.keys())[0]
+        prob = (
+            1 - epsilon + epsilon / len(policy[state])
+            if action == action_with_max_value
+            else epsilon / len(policy[state])
+        )
+        new_state_policy.append({action: prob})
+    policy[state] = new_state_policy
+    return policy
 
 
 def annotate_route(
@@ -239,12 +296,8 @@ def get_optimal_path_and_distance(
         index=cities_locations_gdf["Label"],
         columns=cities_locations_gdf["Label"],
     )
-    q_table_df.to_csv(
-        file_name
-    )
-    shortest_path, route = get_shortest_path(
-        q_table, start_city_index, end_city_index
-    )
+    q_table_df.to_csv(file_name)
+    shortest_path, route = get_shortest_path(q_table, start_city_index, end_city_index)
     route_distance = get_distance(distances, route)
     print("The route distance", route_distance)
     shortest_path = [

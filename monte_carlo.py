@@ -1,9 +1,7 @@
 import argparse
-from collections import defaultdict
 
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 
 import utils
 
@@ -14,25 +12,7 @@ np.random.seed(32)
 EPISODES = 10000
 EPSILON = 0.2
 DISCOUNT_FACTOR = 0.95
-
-
-def get_possible_state_actions(distances: np.ndarray) -> dict:
-    states_actions = {}
-    for i in range(distances.shape[0]):
-        city_distances = pd.Series(distances[i, :])
-        city_distances = city_distances.sort_values()
-        actions = [action for action in city_distances[:10].index if action != i]
-        states_actions[i] = actions
-    return states_actions
-
-
-def initialize_policy(distances: np.ndarray) -> dict:
-    possible_state_actions = get_possible_state_actions(distances)
-    policy = defaultdict(list)
-    for state, actions in possible_state_actions.items():
-        for action in actions:
-            policy[state].append({action: 1 / len(actions)})
-    return dict(policy)
+NO_OF_NEIGHBORS = 10
 
 
 def initialize_state_action_values(
@@ -58,20 +38,12 @@ def initialize_returns(distances: np.ndarray) -> dict:
     return returns
 
 
-def select_action(policy: dict, current_state: int) -> int:
-    actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
-    probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
-    action = np.random.choice(actions, 1, replace=False, p=probs)[0]
-    next_state = action
-    return action, next_state
-
-
 def generate_episode(policy: dict, origin: int, destination: int) -> list:
     episode_results = []
     current_state = origin
     no_steps = 0
     while current_state != destination and no_steps < 2000:
-        action, next_state = select_action(policy, current_state)
+        action, next_state = utils.select_action_from_policy(policy, current_state)
         episode_results.append((current_state, action))
         current_state = next_state
         no_steps += 1
@@ -86,24 +58,10 @@ def state_action_pair_exists_earlier(
     return False
 
 
-def update_policy(policy: dict, state: int, action_with_max_value: int) -> dict:
-    new_state_policy = []
-    for state_policy in policy[state]:
-        action = list(state_policy.keys())[0]
-        prob = (
-            1 - EPSILON + EPSILON / len(policy[state])
-            if action == action_with_max_value
-            else EPSILON / len(policy[state])
-        )
-        new_state_policy.append({action: prob})
-    policy[state] = new_state_policy
-    return policy
-
-
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
-    policy = initialize_policy(distances)
+    policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
     state_action_values = initialize_state_action_values(cities_locations_gdf, policy)
     returns = initialize_returns(distances)
 
@@ -128,7 +86,7 @@ def get_optimal_path(
                 returns[(state, action)]
             )
             action_with_max_value = np.argmax(state_action_values[state])
-            policy = update_policy(policy, state, action_with_max_value)
+            policy = utils.update_policy(policy, EPSILON, state, action_with_max_value)
             current_time_step -= 1
 
     shortest_path, route = utils.get_shortest_path(state_action_values, 0, 15)
