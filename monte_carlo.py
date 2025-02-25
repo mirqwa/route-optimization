@@ -15,21 +15,6 @@ DISCOUNT_FACTOR = 0.95
 NO_OF_NEIGHBORS = 10
 
 
-def initialize_state_action_values(
-    cities_locations_gdf: gpd.GeoDataFrame, policy: dict
-) -> np.ndarray:
-    state_action_values = np.full(
-        (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]), -float("inf")
-    )
-    for state in range(cities_locations_gdf.shape[0]):
-        state_actions = [list(action_prob.keys())[0] for action_prob in policy[state]]
-        for action in range(cities_locations_gdf.shape[0]):
-            state_action_values[state][action] = (
-                0 if action in state_actions else -float("inf")
-            )
-    return state_action_values
-
-
 def initialize_returns(distances: np.ndarray) -> dict:
     returns = {}
     for state in range(distances.shape[0]):
@@ -62,11 +47,10 @@ def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
     policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
-    state_action_values = initialize_state_action_values(cities_locations_gdf, policy)
+    state_action_values = utils.initialize_state_action_values(
+        cities_locations_gdf, policy
+    )
     returns = initialize_returns(distances)
-
-    shortest_path = None
-    route = None
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")

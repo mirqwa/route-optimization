@@ -57,6 +57,21 @@ def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarra
     return q_table
 
 
+def initialize_state_action_values(
+    cities_locations_gdf: gpd.GeoDataFrame, policy: dict
+) -> np.ndarray:
+    state_action_values = np.full(
+        (cities_locations_gdf.shape[0], cities_locations_gdf.shape[0]), -float("inf")
+    )
+    for state in range(cities_locations_gdf.shape[0]):
+        state_actions = [list(action_prob.keys())[0] for action_prob in policy[state]]
+        for action in range(cities_locations_gdf.shape[0]):
+            state_action_values[state][action] = (
+                0 if action in state_actions else -float("inf")
+            )
+    return state_action_values
+
+
 def select_next_action(
     distances: np.ndarray,
     current_city: int,
