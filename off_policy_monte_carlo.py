@@ -8,8 +8,8 @@ import utils
 
 np.random.seed(0)
 
-EPISODES = 10000
-EPSILON = 0.2
+EPISODES = 100000
+EPSILON = 0.1
 DISCOUNT_FACTOR = 0.95
 NO_OF_NEIGHBORS = 10
 
@@ -40,8 +40,11 @@ def get_optimal_path(
         )
         G = 0
         W = 1
+        current_time_step = len(episode_results) - 1
         for state, action in reversed(episode_results):
-            G = DISCOUNT_FACTOR * G - distances[state][action]
+            multiple = episode_results[current_time_step:].count((state, action))
+            reward = -1000 if multiple > 1 else -distances[state][action]
+            G = DISCOUNT_FACTOR * G + reward
             C[state][action] += W
             state_action_values[state][action] = (
                 1 - W / C[state][action]
@@ -59,6 +62,7 @@ def get_optimal_path(
             for action_prob in behavior_policy[state]:
                 state_probs.update(action_prob)
             W = W / state_probs[action]
+            current_time_step -= 1
 
     shortest_path, route = utils.get_shortest_path(
         state_action_values, start_city_index, end_city_index
