@@ -18,9 +18,19 @@ N_STEPS = 3
 
 
 def get_importance_sampling_ratio(
-    q_table: np.ndarray, states: list, actions: list
+    behavior_policy: dict, target_policy: dict, states: list, actions: list
 ) -> float:
-    pass
+    importance_sampling_ratio = 1
+    for state, action in zip(states, actions):
+        behavior_probs = {}
+        target_probs = {}
+        for behavior_prob, target_prob in zip(
+            behavior_policy[state], target_policy[state]
+        ):
+            behavior_probs.update(behavior_prob)
+            target_probs.update(target_prob)
+        importance_sampling_ratio *= target_probs[action] / behavior_probs[action]
+    return importance_sampling_ratio
 
 
 def update_q_table(
@@ -32,12 +42,14 @@ def update_q_table(
     n: int,
     t: int,
     T: int,
+    behavior_policy: dict,
+    target_policy: dict,
 ) -> np.ndarray:
-    # current_states = [states[i] for i in range(tau, min(tau + n - 1, T - 1))]
-    # current_actions = [actions[i] for i in range(tau, min(tau + n - 1, T - 1))]
-    # importance_sampling_ratio = get_importance_sampling_ratio(
-    #     q_table, current_states, current_actions
-    # )
+    states_transitions = [states[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    actions_transitions = [actions[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    importance_sampling_ratio = get_importance_sampling_ratio(
+        behavior_policy, target_policy, states_transitions, actions_transitions
+    )
     G = sum(
         [DISCOUNT_FACTOR ** (i - tau) * rewards[i] for i in range(tau, min(tau + n, T))]
     )
@@ -102,6 +114,8 @@ def train_agent(
                     n,
                     t,
                     T,
+                    behavior_policy,
+                    target_policy,
                 )
                 action_with_max_value = np.argmax(q_table[tau])
                 target_policy = utils.update_policy(
