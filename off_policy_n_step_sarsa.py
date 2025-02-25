@@ -38,7 +38,6 @@ def update_q_table(
     importance_sampling_ratio = get_importance_sampling_ratio(
         q_table, current_states, current_actions
     )
-    breakpoint()
     G = sum(
         [DISCOUNT_FACTOR ** (i - tau) * rewards[i] for i in range(tau, min(tau + n, T))]
     )
@@ -61,8 +60,9 @@ def train_agent(
     distances: np.ndarray,
     n: int,
 ) -> np.ndarray:
+    behavior_policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
+    target_policy = utils.initialize_policy(distances, 1)
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
-    breakpoint()
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
         current_city = start_city_index
