@@ -58,20 +58,6 @@ def state_action_pair_exists_earlier(
     return False
 
 
-def update_policy(policy: dict, state: int, action_with_max_value: int) -> dict:
-    new_state_policy = []
-    for state_policy in policy[state]:
-        action = list(state_policy.keys())[0]
-        prob = (
-            1 - EPSILON + EPSILON / len(policy[state])
-            if action == action_with_max_value
-            else EPSILON / len(policy[state])
-        )
-        new_state_policy.append({action: prob})
-    policy[state] = new_state_policy
-    return policy
-
-
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
@@ -100,7 +86,7 @@ def get_optimal_path(
                 returns[(state, action)]
             )
             action_with_max_value = np.argmax(state_action_values[state])
-            policy = update_policy(policy, state, action_with_max_value)
+            policy = utils.update_policy(policy, EPSILON, state, action_with_max_value)
             current_time_step -= 1
 
     shortest_path, route = utils.get_shortest_path(state_action_values, 0, 15)

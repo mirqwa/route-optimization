@@ -75,6 +75,22 @@ def select_action_from_policy(policy: dict, current_state: int) -> tuple[int]:
     return action, next_state
 
 
+def update_policy(
+    policy: dict, epsilon: float, state: int, action_with_max_value: int
+) -> dict:
+    new_state_policy = []
+    for state_policy in policy[state]:
+        action = list(state_policy.keys())[0]
+        prob = (
+            1 - epsilon + epsilon / len(policy[state])
+            if action == action_with_max_value
+            else epsilon / len(policy[state])
+        )
+        new_state_policy.append({action: prob})
+    policy[state] = new_state_policy
+    return policy
+
+
 def annotate_route(
     ax: plt.Axes, data_gdf: gpd.GeoDataFrame, i: int, j: int, color: str
 ) -> None:
