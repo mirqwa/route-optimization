@@ -1,9 +1,7 @@
 import argparse
-from collections import defaultdict
 
 import geopandas as gpd
 import numpy as np
-import pandas as pd
 
 import utils
 
@@ -14,25 +12,7 @@ np.random.seed(32)
 EPISODES = 10000
 EPSILON = 0.2
 DISCOUNT_FACTOR = 0.95
-
-
-def get_possible_state_actions(distances: np.ndarray) -> dict:
-    states_actions = {}
-    for i in range(distances.shape[0]):
-        city_distances = pd.Series(distances[i, :])
-        city_distances = city_distances.sort_values()
-        actions = [action for action in city_distances[:10].index if action != i]
-        states_actions[i] = actions
-    return states_actions
-
-
-def initialize_policy(distances: np.ndarray) -> dict:
-    possible_state_actions = get_possible_state_actions(distances)
-    policy = defaultdict(list)
-    for state, actions in possible_state_actions.items():
-        for action in actions:
-            policy[state].append({action: 1 / len(actions)})
-    return dict(policy)
+NO_OF_NEIGHBORS = 10
 
 
 def initialize_state_action_values(
@@ -103,7 +83,7 @@ def update_policy(policy: dict, state: int, action_with_max_value: int) -> dict:
 def get_optimal_path(
     cities_locations_gdf: gpd.GeoDataFrame, distances: np.ndarray
 ) -> tuple:
-    policy = initialize_policy(distances)
+    policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
     state_action_values = initialize_state_action_values(cities_locations_gdf, policy)
     returns = initialize_returns(distances)
 
