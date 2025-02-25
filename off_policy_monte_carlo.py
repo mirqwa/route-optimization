@@ -8,7 +8,7 @@ import utils
 
 np.random.seed(0)
 
-EPISODES = 1000
+EPISODES = 10000
 EPSILON = 0.2
 DISCOUNT_FACTOR = 0.95
 NO_OF_NEIGHBORS = 10
@@ -47,15 +47,18 @@ def get_optimal_path(
                 1 - W / C[state][action]
             ) * state_action_values[state][action] + (W / C[state][action]) * G
             action_with_max_value = np.argmax(state_action_values[state])
+            behavior_policy = utils.update_policy(
+                behavior_policy, EPSILON, state, action_with_max_value
+            )
             target_policy = utils.update_policy(
-                target_policy, EPSILON, state, action_with_max_value
+                target_policy, 0, state, action_with_max_value
             )
             if action != action_with_max_value:
                 break
-            try:
-                W = W / (behavior_policy[state][action])
-            except Exception:
-                breakpoint()
+            state_probs = {}
+            for action_prob in behavior_policy[state]:
+                state_probs.update(action_prob)
+            W = W / state_probs[action]
 
     shortest_path, route = utils.get_shortest_path(
         state_action_values, start_city_index, end_city_index
