@@ -101,6 +101,18 @@ def select_action_from_policy(policy: dict, current_state: int) -> tuple[int]:
     return action, next_state
 
 
+def generate_episode(policy: dict, origin: int, destination: int) -> list:
+    episode_results = []
+    current_state = origin
+    no_steps = 0
+    while current_state != destination and no_steps < 2000:
+        action, next_state = select_action_from_policy(policy, current_state)
+        episode_results.append((current_state, action))
+        current_state = next_state
+        no_steps += 1
+    return episode_results
+
+
 def update_policy(
     policy: dict, epsilon: float, state: int, action_with_max_value: int
 ) -> dict:

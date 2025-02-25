@@ -31,6 +31,9 @@ def get_optimal_path(
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
+        episode_results = utils.generate_episode(
+            behavior_policy, start_city_index, end_city_index
+        )
 
     shortest_path = route = None
     return shortest_path, route

@@ -23,18 +23,6 @@ def initialize_returns(distances: np.ndarray) -> dict:
     return returns
 
 
-def generate_episode(policy: dict, origin: int, destination: int) -> list:
-    episode_results = []
-    current_state = origin
-    no_steps = 0
-    while current_state != destination and no_steps < 2000:
-        action, next_state = utils.select_action_from_policy(policy, current_state)
-        episode_results.append((current_state, action))
-        current_state = next_state
-        no_steps += 1
-    return episode_results
-
-
 def state_action_pair_exists_earlier(
     state_action: tuple, episode_results: list, current_time_step: int
 ) -> bool:
@@ -63,7 +51,9 @@ def get_optimal_path(
 
     for episode in range(EPISODES):
         print(f"Episode {episode + 1}")
-        episode_results = generate_episode(policy, start_city_index, end_city_index)
+        episode_results = utils.generate_episode(
+            policy, start_city_index, end_city_index
+        )
         G = 0
         current_time_step = len(episode_results) - 1
         for state, action in reversed(episode_results):
