@@ -61,16 +61,14 @@ def train_agent(
     n: int,
 ) -> np.ndarray:
     behavior_policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
-    target_policy = utils.initialize_policy(distances, 1)
+    target_policy = utils.initialize_policy(distances, NO_OF_NEIGHBORS)
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
         current_city = start_city_index
         states = [current_city]
         rewards = []
-        action = utils.select_next_action(
-            distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
-        )
+        action, _ = utils.select_action_from_policy(behavior_policy, current_city)
         actions = [action]
         visited_cities = []
         T = float("inf")
@@ -88,8 +86,8 @@ def train_agent(
                 if current_city == end_city_index:
                     T = t + 1
                 else:
-                    next_action = utils.select_next_action(
-                        distances, current_city, q_table, NO_OF_NEIGHBORS, EPSILON
+                    next_action, _ = utils.select_action_from_policy(
+                        behavior_policy, current_city
                     )
                     actions.append(next_action)
                     action = next_action
