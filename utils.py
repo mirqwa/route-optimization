@@ -40,7 +40,7 @@ def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarra
     for city in range(distances.shape[0]):
         city_distances = pd.Series(distances[city, :])
         min_distance = city_distances.sort_values().to_list()[no_of_neighbors]
-        possible_actions = np.where(distances[city, :] < min_distance)[0]
+        possible_actions = np.where(distances[city, :] <= min_distance)[0]
         for action in range(distances.shape[1]):
             q_table[city][action] = 0 if action in possible_actions else -float("inf")
     return q_table
@@ -287,8 +287,8 @@ def get_optimal_path_and_distance(
     )
     q_table_df.to_csv(file_name)
     shortest_path, route = get_shortest_path(q_table, start_city_index, end_city_index)
-    route_distance = get_distance(distances, route)
-    print("The route distance", route_distance)
+    # route_distance = get_distance(distances, route)
+    # print("The route distance", route_distance)
     shortest_path = [
         cities_locations_gdf["Label"][city_index] for city_index in shortest_path
     ]
