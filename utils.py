@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 from pathlib import Path
 
 import contextily as cx
@@ -11,6 +12,27 @@ import pandas as pd
 from googlemaps import Client
 
 import constants
+
+
+def get_possible_state_actions(distances: np.ndarray, no_of_neighbors: int) -> dict:
+    states_actions = {}
+    for i in range(distances.shape[0]):
+        city_distances = pd.Series(distances[i, :])
+        city_distances = city_distances.sort_values()
+        actions = [
+            action for action in city_distances[:no_of_neighbors].index if action != i
+        ]
+        states_actions[i] = actions
+    return states_actions
+
+
+def initialize_policy(distances: np.ndarray, no_of_neighbors: int) -> dict:
+    possible_state_actions = get_possible_state_actions(distances, no_of_neighbors)
+    policy = defaultdict(list)
+    for state, actions in possible_state_actions.items():
+        for action in actions:
+            policy[state].append({action: 1 / len(actions)})
+    return dict(policy)
 
 
 def initialize_q_table(distances: np.ndarray, no_of_neighbors: int) -> np.ndarray:
@@ -239,12 +261,8 @@ def get_optimal_path_and_distance(
         index=cities_locations_gdf["Label"],
         columns=cities_locations_gdf["Label"],
     )
-    q_table_df.to_csv(
-        file_name
-    )
-    shortest_path, route = get_shortest_path(
-        q_table, start_city_index, end_city_index
-    )
+    q_table_df.to_csv(file_name)
+    shortest_path, route = get_shortest_path(q_table, start_city_index, end_city_index)
     route_distance = get_distance(distances, route)
     print("The route distance", route_distance)
     shortest_path = [

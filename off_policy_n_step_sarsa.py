@@ -17,6 +17,12 @@ MAX_STEPS = 1500
 N_STEPS = 3
 
 
+def get_importance_sampling_ratio(
+    q_table: np.ndarray, states: list, actions: list
+) -> float:
+    pass
+
+
 def update_q_table(
     q_table: np.ndarray,
     states: list,
@@ -27,6 +33,12 @@ def update_q_table(
     t: int,
     T: int,
 ) -> np.ndarray:
+    current_states = [states[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    current_actions = [actions[i] for i in range(tau, min(tau + n - 1, T - 1))]
+    importance_sampling_ratio = get_importance_sampling_ratio(
+        q_table, current_states, current_actions
+    )
+    breakpoint()
     G = sum(
         [DISCOUNT_FACTOR ** (i - tau) * rewards[i] for i in range(tau, min(tau + n, T))]
     )
@@ -50,6 +62,7 @@ def train_agent(
     n: int,
 ) -> np.ndarray:
     q_table = utils.initialize_q_table(distances, NO_OF_NEIGHBORS)
+    breakpoint()
     for episode in range(num_episodes):
         print(f"Episode {episode + 1}")
         current_city = start_city_index
@@ -126,7 +139,7 @@ def get_optimal_path(
 
 def main(api_key: str) -> None:
     cities_locations_gdf, distances = utils.get_training_data(api_key)
-    utils.plot_cities(cities_locations_gdf)
+    # utils.plot_cities(cities_locations_gdf)
     shortest_path, route = get_optimal_path(
         cities_locations_gdf, distances, "Nairobi", "Kampala", 3
     )
