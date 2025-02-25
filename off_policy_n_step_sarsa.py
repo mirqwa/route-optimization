@@ -59,9 +59,11 @@ def update_q_table(
         else G
     )
 
-    q_table[states[tau]][actions[tau]] = (1 - LEARNING_RATE) * q_table[states[tau]][
+    q_table[states[tau]][actions[tau]] = (
+        1 - LEARNING_RATE * importance_sampling_ratio
+    ) * q_table[states[tau]][
         actions[tau]
-    ] + LEARNING_RATE * G
+    ] + LEARNING_RATE * importance_sampling_ratio * G
     return q_table
 
 
@@ -117,9 +119,9 @@ def train_agent(
                     behavior_policy,
                     target_policy,
                 )
-                action_with_max_value = np.argmax(q_table[tau])
+                action_with_max_value = np.argmax(q_table[states[tau]])
                 target_policy = utils.update_policy(
-                    target_policy, EPSILON, tau, action_with_max_value
+                    target_policy, EPSILON, states[tau], action_with_max_value
                 )
             if tau == T - 1:
                 break
