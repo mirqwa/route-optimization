@@ -38,20 +38,12 @@ def initialize_returns(distances: np.ndarray) -> dict:
     return returns
 
 
-def select_action(policy: dict, current_state: int) -> int:
-    actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
-    probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
-    action = np.random.choice(actions, 1, replace=False, p=probs)[0]
-    next_state = action
-    return action, next_state
-
-
 def generate_episode(policy: dict, origin: int, destination: int) -> list:
     episode_results = []
     current_state = origin
     no_steps = 0
     while current_state != destination and no_steps < 2000:
-        action, next_state = select_action(policy, current_state)
+        action, next_state = utils.select_action_from_policy(policy, current_state)
         episode_results.append((current_state, action))
         current_state = next_state
         no_steps += 1

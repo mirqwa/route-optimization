@@ -67,6 +67,14 @@ def select_next_action(
     return np.random.choice(possible_actions)
 
 
+def select_action_from_policy(policy: dict, current_state: int) -> tuple[int]:
+    actions = [list(state_policy.keys())[0] for state_policy in policy[current_state]]
+    probs = [list(state_policy.values())[0] for state_policy in policy[current_state]]
+    action = np.random.choice(actions, 1, replace=False, p=probs)[0]
+    next_state = action
+    return action, next_state
+
+
 def annotate_route(
     ax: plt.Axes, data_gdf: gpd.GeoDataFrame, i: int, j: int, color: str
 ) -> None:
